@@ -31,13 +31,13 @@ train
 
 \+ coco2017
 
-     \+ 512
+     + 512
      
-             \+01.. 17
+             +01.. 17
              
-                  \+ 01 .. 18
+                  + 01 .. 18
                   
-                       \+ 01 .. 18
+                       + 01 .. 18
 
 The coco2017/512 directory therefore contains up to 19 directories three levels deep with files named according to their directory and sequence in that folder - e.g. coco2017/512/01/02/03/01-02-03-01.jpg to 01-02-03-18.jpg. While this may look stupid it's far from it. All the files are pre-processed to be 512x512 in size (saves a resize in code) and the layout ensures files can be accessed quickly. The original release has files of wildly varying image dimensions and places all of them in one directory (118,287 files in one directory is a bad idea...)
 
