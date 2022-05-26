@@ -13,7 +13,7 @@ python neural_style/neural_style_fixed.py train --model-name hero-vgg16-1010-512
 
 ##### Model Naming
 
-This is only a suggestion but naming models with the base net (e.g. vgg16) the python neural_style/neural_style_fixed.py train --model-name hero-vgg16-1010-512.pth --image-size 512 --style-weight 1.0e10 --style-image style-images/hero.jpg --save-model-dir models --epochs 1 --batch-size 2 and padded (1010) and image size used to create (512) is how I'm coding them for legibility ATM
+This is only a suggestion but naming models with the base net (e.g. vgg16), style-image reverse padded (1010) and image size used to create (512) is how I'm coding them for legibility ATM
 
 ##### Reversed Weight naming
 
