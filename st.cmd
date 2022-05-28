@@ -1,0 +1,1 @@
+python neural_style/neural_style.py eval --model  models/marek-vgg16-1010-96.pth --content-image input-images/plant.jpg --output-image output-images/plant-marek-vgg16-1010-96.jpg

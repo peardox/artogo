@@ -66,6 +66,7 @@ def train(args):
         agg_content_loss = 0.
         agg_style_loss = 0.
         count = 0
+        ckpt_id = 0;
         for batch_id, (x, _) in enumerate(train_loader):
             n_batch = len(x)
             count += n_batch
@@ -106,7 +107,8 @@ def train(args):
 
             if args.checkpoint_model_dir is not None and (batch_id + 1) % args.checkpoint_interval == 0:
                 transformer.eval().cpu()
-                ckpt_model_filename = "ckpt_epoch_" + str(e) + "_batch_id_" + str(batch_id + 1) + ".pth"
+                ckpt_model_filename = "ckpt_" + str(ckpt_id + 1).zfill(4) + ".pth"
+                ckpt_id += 1;
                 ckpt_model_path = os.path.join(args.checkpoint_model_dir, ckpt_model_filename)
                 torch.save(transformer.state_dict(), ckpt_model_path)
                 transformer.to(device).train()

@@ -2,3 +2,5 @@
 *
 # Except this file
 !.gitignore
+coco100/
+coco2017/

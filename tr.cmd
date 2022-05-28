@@ -1,0 +1,1 @@
+python neural_style/neural_style.py train --model-name wall-vgg16-1010-512.pth --image-size 512 --checkpoint-model-dir checkpoint --checkpoint-interval 33 --style-weight 1.0e10 --style-image style-images/red_brick_wall.jpg --save-model-dir models --epochs 1 --batch-size 2
