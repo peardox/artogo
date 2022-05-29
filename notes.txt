@@ -1,0 +1,25 @@
+Pytorch
+https://pytorch.org/get-started/locally/
+
+FNS
+https://github.com/pytorch/examples/tree/main/fast_neural_style
+https://github.com/rrmina/fast-neural-style-pytorch
+https://michhar.github.io/convert-pytorch-onnx/#a-pre-trained-model-from-torchvision
+
+Nets
+Vgg16 - https://uk.mathworks.com/help/deeplearning/ref/vgg16.html
+Vgg19 - https://uk.mathworks.com/help/deeplearning/ref/vgg19.html
+
+Money
+https://www.lastweekinaws.com/blog/how-to-get-free-aws-credits-4-tactics-to-use/
+
+wsl --install -d Ubuntu-20.04
+
+Snippets
+
+import torch
+
+t = torch.cuda.get_device_properties(0).total_memory
+r = torch.cuda.memory_reserved(0)
+a = torch.cuda.memory_allocated(0)
+f = r-a  # free inside reserved

@@ -14,8 +14,9 @@ import torch.onnx
 
 import utils
 from transformer_net import TransformerNet
+# import vgg
+from vgg import Vgg19
 from vgg import Vgg16
-# from vgg19 import Vgg19
 
 
 def check_paths(args):
@@ -48,8 +49,10 @@ def train(args):
     optimizer = Adam(transformer.parameters(), args.lr)
     mse_loss = torch.nn.MSELoss()
 
-    vgg = Vgg16(requires_grad=False).to(device)
-#    vgg = Vgg19(requires_grad=False).to(device)
+    if args.net.casefold() == 'vgg16':
+        vgg = Vgg16(requires_grad=False).to(device)
+    else:
+        vgg = Vgg19(requires_grad=False).to(device)
     style_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Lambda(lambda x: x.mul(255))
@@ -225,6 +228,8 @@ def main():
                                   help="weight for style-loss, default is 1e10")
     train_arg_parser.add_argument("--lr", type=float, default=1e-3,
                                   help="learning rate, default is 1e-3")
+    train_arg_parser.add_argument("--net", type=str, default="vgg19",
+                                  help="Network to use - vgg19 or vgg16")
     train_arg_parser.add_argument("--log-interval", type=int, default=500,
                                   help="number of images after which the training loss is logged, default is 500")
     train_arg_parser.add_argument("--checkpoint-interval", type=int, default=1000,
