@@ -1,7 +1,4 @@
 numpy
-Pillow
-pip
-py-cpu
 scipy
 torch==1.11.0+cu113
 torchaudio==0.11.0+cu113

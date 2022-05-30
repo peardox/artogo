@@ -14,7 +14,19 @@ ONNX - https://github.com/onnx/models
 Money
 https://www.lastweekinaws.com/blog/how-to-get-free-aws-credits-4-tactics-to-use/
 
-wsl --install -d Ubuntu-20.04
+Ubuntu 20.04
+sudo apt-get update
+sudo apt-get install python3 python-is-python3 build-essential cmake ninja-build
+wget https://bootstrap.pypa.io/get-pip.py
+python get-pip.py
+echo -e "\nexport PATH=$HOME/.local/bin:\$PATH\n" >> .bashrc
+source ~/.bashrc
+# Sanity check
+pip list
+git clone https://github.com/peardox/artogo.git
+cd artogo
+pip install -r requirements.txt
+
 
 Snippets
 
@@ -41,3 +53,38 @@ svmem(total=4097744896, available=2841841664, percent=30.6, used=909299712, free
 
 Win
 svmem(total=16559382528, available=9123405824, percent=44.9, used=7435976704, free=9123405824)
+
+1024
+1152
+1280
+1408
+1536
+1664
+1792
+1920
+2048
+
+PS C:\git\artogo> .\tr.cmd 1.0e10 wall_1280x720 vgg16 1010 256 8
+Traceback (most recent call last):
+  File "C:\git\artogo\neural_style\neural_style.py", line 276, in <module>
+    main()
+  File "C:\git\artogo\neural_style\neural_style.py", line 263, in main
+    train(args)
+  File "C:\git\artogo\neural_style\neural_style.py", line 84, in train
+    features_y = vgg(y)
+  File "C:\Users\simon\AppData\Local\Programs\Python\Python39\lib\site-packages\torch\nn\modules\module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\git\artogo\neural_style\vgg.py", line 30, in forward
+    h = self.slice2(h)
+  File "C:\Users\simon\AppData\Local\Programs\Python\Python39\lib\site-packages\torch\nn\modules\module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\simon\AppData\Local\Programs\Python\Python39\lib\site-packages\torch\nn\modules\container.py", line 141, in forward
+    input = module(input)
+  File "C:\Users\simon\AppData\Local\Programs\Python\Python39\lib\site-packages\torch\nn\modules\module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "C:\Users\simon\AppData\Local\Programs\Python\Python39\lib\site-packages\torch\nn\modules\conv.py", line 447, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+  File "C:\Users\simon\AppData\Local\Programs\Python\Python39\lib\site-packages\torch\nn\modules\conv.py", line 443, in _conv_forward
+    return F.conv2d(input, weight, bias, self.stride,
+RuntimeError: CUDA out of memory. Tried to allocate 64.00 MiB (GPU 0; 6.00 GiB total capacity; 5.26 GiB already allocated; 0 bytes free; 5.31 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
+PS C:\git\artogo>

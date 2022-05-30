@@ -218,7 +218,7 @@ def main():
                                   help="size of training images, default is 384 X 384")
     train_arg_parser.add_argument("--style-size", type=int, default=None,
                                   help="size of style-image, default is the original size of style image")
-    train_arg_parser.add_argument("--cuda", type=int, default=1,
+    train_arg_parser.add_argument("--cuda", type=int, default=0,
                                   help="set it to 1 for running on GPU, 0 for CPU")
     train_arg_parser.add_argument("--seed", type=int, default=42,
                                   help="random seed for training")
@@ -244,7 +244,7 @@ def main():
                                  help="path for saving the output image")
     eval_arg_parser.add_argument("--model", type=str, required=True,
                                  help="saved model to be used for stylizing the image. If file ends in .pth - PyTorch path is used, if in .onnx - Caffe2 path")
-    eval_arg_parser.add_argument("--cuda", type=int, default=1,
+    eval_arg_parser.add_argument("--cuda", type=int, default=0,
                                  help="set it to 1 for running on GPU, 0 for CPU")
     eval_arg_parser.add_argument("--export_onnx", type=str,
                                  help="export ONNX model to a given file")
