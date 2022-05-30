@@ -9,6 +9,7 @@ https://michhar.github.io/convert-pytorch-onnx/#a-pre-trained-model-from-torchvi
 Nets
 Vgg16 - https://uk.mathworks.com/help/deeplearning/ref/vgg16.html
 Vgg19 - https://uk.mathworks.com/help/deeplearning/ref/vgg19.html
+ONNX - https://github.com/onnx/models
 
 Money
 https://www.lastweekinaws.com/blog/how-to-get-free-aws-credits-4-tactics-to-use/
@@ -18,8 +19,25 @@ wsl --install -d Ubuntu-20.04
 Snippets
 
 import torch
+pip install psutil
 
-t = torch.cuda.get_device_properties(0).total_memory
-r = torch.cuda.memory_reserved(0)
-a = torch.cuda.memory_allocated(0)
+devtype = torch.cuda.is_available()
+device = torch.device("cuda" if devtype else "cpu")
+
+t = device.get_device_properties(0).total_memory
+r = device.memory_reserved(0)
+a = device.memory_allocated(0)
 f = r-a  # free inside reserved
+print("Free : ", f, "Reserved : ", r, "Allocated : ", a, "Total : ", t)
+
+import psutil
+mem = psutil.virtual_memory()
+mem.total # total
+mem.available # free
+mem.percent # percent used
+
+Linux
+svmem(total=4097744896, available=2841841664, percent=30.6, used=909299712, free=1905729536, active=962273280, inactive=866078720, buffers=179179520, cached=1103536128, shared=71720960, slab=230019072)
+
+Win
+svmem(total=16559382528, available=9123405824, percent=44.9, used=7435976704, free=9123405824)
