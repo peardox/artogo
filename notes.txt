@@ -115,4 +115,6 @@ Elapsed time = 0 hours 11 mins 9 secs
 
 ffmpeg -i %04d.jpg ../sunrise.mp4
 
+.\tr.cmd 1.0e10 wall_1024x576_e4l vgg16 1010 256 6
+
 pip install python-dotenv

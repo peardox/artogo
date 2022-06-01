@@ -270,7 +270,7 @@ def main():
                                  help="saved model to be used for stylizing the image. If file ends in .pth - PyTorch path is used, if in .onnx - Caffe2 path")
     eval_arg_parser.add_argument("--model-dir", type=str, default="models",
                                  help="Path to saved models")
-    eval_arg_parser.add_argument("--cuda", type=int, default=1,
+    eval_arg_parser.add_argument("--cuda", type=int, default=0,
                                  help="set it to 1 for running on GPU, 0 for CPU")
     eval_arg_parser.add_argument("--export_onnx", type=str,
                                  help="export ONNX model to a given file")
