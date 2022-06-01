@@ -18,6 +18,29 @@ from transformer_net import TransformerNet
 from vgg import *
 # from vgg import Vgg16
 import logging
+import pynvml
+
+def check_gpu():
+    try:
+        torch.cuda.init()
+        if(torch.cuda.is_available()):
+            gpu_supported = 1
+            print("CUDA Available : ",torch.cuda.is_available())
+            print("CUDA Devices : ",torch.cuda.device_count())
+            print("CUDA Arch List : ",torch.cuda.get_arch_list())
+            for x in range(torch.cuda.device_count()):
+                print("CUDA Capabilities : ",torch.cuda.get_device_capability(x))
+                print("CUDA Device Name : ",torch.cuda.get_device_name(x))
+                print("CUDA Device Memory : ",torch.cuda.mem_get_info(x))
+                print("CUDA Device Properties : ",torch.cuda.get_device_properties(x))
+                # print(torch.cuda.memory_summary(x))
+    except:
+        print("No supported GPUs detected")
+        gpu_supported = 0
+
+    print("GPU Support : ", gpu_supported);
+    return gpu_supported
+    
 
 def check_paths(args):
     try:
@@ -30,8 +53,8 @@ def check_paths(args):
         sys.exit(1)
 
 
-def train(args):
-    device = torch.device("cuda" if args.cuda else "cpu")
+def train(args, use_gpu):
+    device = torch.device("cuda" if use_gpu else "cpu")
     if args.limit != 0:
         limit = args.limit
     
@@ -112,14 +135,15 @@ def train(args):
             agg_content_loss += content_loss.item()
             agg_style_loss += style_loss.item()
 
-            if (batch_id + 1) % args.log_interval == 0:
+            if ((batch_id + 1) % args.log_interval == 0) or (batch_id == 0 and e == 0):
                 mesg = "{}\tEpoch {}:\t[{}/{}]\tcontent: {:.6f}\tstyle: {:.6f}\ttotal: {:.6f}".format(
                     time.ctime(), e + 1, count, len(train_dataset),
                                   agg_content_loss / (batch_id + 1),
                                   agg_style_loss / (batch_id + 1),
                                   (agg_content_loss + agg_style_loss) / (batch_id + 1)
                 )
-                print(mesg)
+                logging.info(mesg)
+                print("\r" + mesg)
 
             if args.checkpoint_model_dir is not None and (batch_id + 1) % args.checkpoint_interval == 0:
                 transformer.eval().cpu()
@@ -145,12 +169,13 @@ def train(args):
                       agg_style_loss / (batch_id + 1),
                       (agg_content_loss + agg_style_loss) / (batch_id + 1)
     )
-    print(mesg)
+    logging.info(mesg)
+    print("\r" + mesg + "\n")
     print("\nDone, trained model saved at", save_model_path)
 #    torch.onnx.export(model, dummy_input, "alexnet.onnx", verbose=True, input_names=input_names, output_names=output_names)
 
-def stylize(args):
-    device = torch.device("cuda" if args.cuda else "cpu")
+def stylize(args, use_gpu):
+    device = torch.device("cuda" if use_gpu else "cpu")
 
     content_image = utils.load_image(args.content_image, scale=args.content_scale)
     content_transform = transforms.Compose([
@@ -184,7 +209,7 @@ def stylize(args):
             else:
                 output = style_model(content_image).cpu()
     utils.save_image(args.output_image, output[0])
-    # if args.cuda:
+    # if use_gpu:
     #     print(torch.cuda.memory_summary(0))
 
 def stylize_onnx(content_image, args):
@@ -242,8 +267,10 @@ def main():
                                   help="size of training images, default is 384 X 384")
     train_arg_parser.add_argument("--style-size", type=int, default=None,
                                   help="size of style-image, default is the original size of style image")
-    train_arg_parser.add_argument("--cuda", type=int, default=0,
-                                  help="set it to 1 for running on GPU, 0 for CPU")
+    train_arg_parser.add_argument("--logfile", type=str, default=None,
+                                  help="Optional lof file location")
+    train_arg_parser.add_argument("--ignore-gpu", type=int, default=0,
+                                  help="Set it to 1 to ignore GPU if detected")
     train_arg_parser.add_argument("--seed", type=int, default=42,
                                   help="random seed for training")
     train_arg_parser.add_argument("--content-weight", type=float, default=1e5,
@@ -270,32 +297,37 @@ def main():
                                  help="saved model to be used for stylizing the image. If file ends in .pth - PyTorch path is used, if in .onnx - Caffe2 path")
     eval_arg_parser.add_argument("--model-dir", type=str, default="models",
                                  help="Path to saved models")
-    eval_arg_parser.add_argument("--cuda", type=int, default=0,
-                                 help="set it to 1 for running on GPU, 0 for CPU")
+    eval_arg_parser.add_argument("--ignore-gpu", type=int, default=0,
+                                  help="Set it to 1 to ignore GPU if detected")
     eval_arg_parser.add_argument("--export_onnx", type=str,
                                  help="export ONNX model to a given file")
     eval_arg_parser.add_argument("--movie", type=str, default=None,
                                  help="path to movie styles")
     eval_arg_parser.add_argument("--add-model-path", type=int, default=1,
                                  help="Add movie path ot not")
+    eval_arg_parser.add_argument("--logfile", type=str, default=None,
+                                  help="Optional lof file location")
 
     args = main_arg_parser.parse_args()
+    
+    if args.logfile is not None:
+        logging.basicConfig(filename=args.logfile, encoding='utf-8', format='%(message)s', level=logging.INFO)
+        print("Logging to ", args.logfile)
 
     if args.subcommand is None:
         print("ERROR: specify either train or eval")
-        elapsed = time.time() - start    
-        print("Elapsed time = %f secs" % (elapsed))
         sys.exit(1)
-    if args.cuda and not torch.cuda.is_available():
-        print("ERROR: cuda is not available, try running on CPU")
-        sys.exit(1)
+        
+    use_gpu = 0
+    if args.ignore_gpu == 0:
+        use_gpu = check_gpu()
 
     if args.subcommand == "train":
         check_paths(args)
-        train(args)
+        train(args, use_gpu)
     else:
         if args.movie is None:
-            stylize(args)
+            stylize(args, use_gpu)
         else:
             frame_id = 0;
             main_model = args.model
@@ -315,7 +347,7 @@ def main():
                     args.add_model_path = 0;
                     print(args.model, " -> ", args.output_image)
             # print("looping : ", x)
-                    stylize(args)
+                    stylize(args, use_gpu)
         
     elapsed = time.time() - start    
     print("Elapsed time = %f secs" % (elapsed))
