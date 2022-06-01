@@ -2,9 +2,10 @@
 set argc=0
 for %%x in (%*) do Set /A argc+=1
 
-if not %argc% == 5 goto help
+if %argc% lss 5 goto help
 
-python neural_style/neural_style.py eval --model  models/%2-%3-%4-%5.pth --content-image input-images/%1.jpg --output-image output-images/%1-%2-%3-%4-%5.jpg
+echo python neural_style/neural_style.py eval --model-dir models --model  %2-%3-%4-%5 --content-image input-images/%1.jpg --output-image output-images/%1-%2-%3-%4-%5.jpg
+python neural_style/neural_style.py eval --model-dir models --model %2-%3-%4-%5 --content-image input-images/%1.jpg --output-image output-images/%1-%2-%3-%4-%5.jpg
 exit
 
 :help

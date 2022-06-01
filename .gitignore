@@ -19,6 +19,7 @@ lib64/
 parts/
 sdist/
 checkpoint/
+movies/
 var/
 wheels/
 pip-wheel-metadata/
@@ -27,6 +28,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+debug.log
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

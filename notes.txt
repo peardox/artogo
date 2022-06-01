@@ -27,12 +27,22 @@ git clone https://github.com/peardox/artogo.git
 cd artogo
 pip install -r requirements.txt
 
+pip install torch pynvml psutil
 
 Snippets
 
 import torch
-pip install psutil
+import pynvml
 
+torch.cuda.is_available()
+torch.cuda.device_count()
+torch.cuda.get_arch_list()
+for x in range(torch.cuda.device_count()):
+	torch.cuda.get_device_capability(x)
+	torch.cuda.get_device_name(x)
+	torch.cuda.get_device_properties(x)
+	torch.cuda.memory_usage(x)
+	
 devtype = torch.cuda.is_available()
 device = torch.device("cuda" if devtype else "cpu")
 
@@ -88,3 +98,21 @@ Traceback (most recent call last):
     return F.conv2d(input, weight, bias, self.stride,
 RuntimeError: CUDA out of memory. Tried to allocate 64.00 MiB (GPU 0; 6.00 GiB total capacity; 5.26 GiB already allocated; 0 bytes free; 5.31 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
 PS C:\git\artogo>
+
+
+.\tr.cmd 1.0e10 wall_1024x576_e4 vgg16 1010 256 6
+.\tr.cmd 1.0e10 Candice_Swanepoel vgg16 1010 128 4
+
+.\tr.cmd 1.0e10 quilt_512 vgg16 1010 256 8
+.\tr.cmd 1.0e10 quilt_1024 vgg16 1010 256 6
+
+Model
+Done, trained model saved at models\mosaic-vgg16-1010-512.pth
+Elapsed time = 4 hours 58 mins 37 secs
+
+Render Movie
+Elapsed time = 0 hours 11 mins 9 secs
+
+ffmpeg -i %04d.jpg ../sunrise.mp4
+
+pip install python-dotenv
