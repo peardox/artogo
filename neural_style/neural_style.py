@@ -31,6 +31,7 @@ def check_gpu():
             for x in range(torch.cuda.device_count()):
                 print("CUDA Capabilities : ",torch.cuda.get_device_capability(x))
                 print("CUDA Device Name : ",torch.cuda.get_device_name(x))
+                # logging.info("CUDA Device Name : " + torch.cuda.get_device_name(x))
                 print("CUDA Device Memory : ",torch.cuda.mem_get_info(x))
                 print("CUDA Device Properties : ",torch.cuda.get_device_properties(x))
                 # print(torch.cuda.memory_summary(x))
@@ -58,6 +59,8 @@ def train(args, use_gpu):
     if args.limit != 0:
         limit = args.limit
     
+    logging.info("image_count, content_loss, style_loss, total_loss")
+
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     if args.force_size == 1:
@@ -91,7 +94,7 @@ def train(args, use_gpu):
     style = style_transform(style)
     style = style.repeat(args.batch_size, 1, 1, 1).to(device)
 
-#    sbtrcnt = 0
+    image_count = 0
     
     features_style = vgg(utils.normalize_batch(style))
     gram_style = [utils.gram_matrix(y) for y in features_style]
@@ -108,8 +111,7 @@ def train(args, use_gpu):
             count += n_batch
             optimizer.zero_grad()
 
-#            sbtrcnt += 1
-#            print("sb = ", sbtrcnt, " - n_batch = ", n_batch, " - count = ", count, " - usc = ", _, "Size = ", sys.getsizeof(x))
+            image_count += n_batch
             
             x = x.to(device)
             y = transformer(x)
@@ -135,14 +137,14 @@ def train(args, use_gpu):
             agg_content_loss += content_loss.item()
             agg_style_loss += style_loss.item()
 
-            if ((batch_id + 1) % args.log_interval == 0) or (batch_id == 0 and e == 0):
+            if (image_count % args.log_interval == 0) or (batch_id == 0 and e == 0):
                 mesg = "{}\tEpoch {}:\t[{}/{}]\tcontent: {:.6f}\tstyle: {:.6f}\ttotal: {:.6f}".format(
                     time.ctime(), e + 1, count, len(train_dataset),
                                   agg_content_loss / (batch_id + 1),
                                   agg_style_loss / (batch_id + 1),
                                   (agg_content_loss + agg_style_loss) / (batch_id + 1)
                 )
-                logging.info(mesg)
+                logging.info(str(image_count) + ", " + str(agg_content_loss / (batch_id + 1)) + ", " + str(agg_style_loss / (batch_id + 1)) + ", " + str((agg_content_loss + agg_style_loss) / (batch_id + 1)))
                 print("\r" + mesg)
 
             if args.checkpoint_model_dir is not None and (batch_id + 1) % args.checkpoint_interval == 0:
@@ -169,7 +171,7 @@ def train(args, use_gpu):
                       agg_style_loss / (batch_id + 1),
                       (agg_content_loss + agg_style_loss) / (batch_id + 1)
     )
-    logging.info(mesg)
+    logging.info(str(image_count) + ", " + str(agg_content_loss / (batch_id + 1)) + ", " + str(agg_style_loss / (batch_id + 1)) + ", " + str((agg_content_loss + agg_style_loss) / (batch_id + 1)))
     print("\r" + mesg + "\n")
     print("\nDone, trained model saved at", save_model_path)
 #    torch.onnx.export(model, dummy_input, "alexnet.onnx", verbose=True, input_names=input_names, output_names=output_names)
@@ -310,18 +312,18 @@ def main():
 
     args = main_arg_parser.parse_args()
     
-    if args.logfile is not None:
-        logging.basicConfig(filename=args.logfile, encoding='utf-8', format='%(message)s', level=logging.INFO)
+    use_gpu = 0
+    if args.ignore_gpu == 0:
+        use_gpu = check_gpu()
+
+    if args.subcommand == "train" and args.logfile is not None:
+        logging.basicConfig(filename=args.logfile, encoding='utf-8', format='%(message)s', level=logging.INFO, filemode='w')
         print("Logging to ", args.logfile)
 
     if args.subcommand is None:
         print("ERROR: specify either train or eval")
         sys.exit(1)
         
-    use_gpu = 0
-    if args.ignore_gpu == 0:
-        use_gpu = check_gpu()
-
     if args.subcommand == "train":
         check_paths(args)
         train(args, use_gpu)
