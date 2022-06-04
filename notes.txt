@@ -19,7 +19,7 @@ sudo apt-get update
 sudo apt-get install python3 python-is-python3 build-essential cmake ninja-build
 wget https://bootstrap.pypa.io/get-pip.py
 python get-pip.py
-echo -e "\nexport PATH=$HOME/.local/bin:\$PATH\n" >> .bashrc
+echo -e "\nexport PATH=$HOME/.local/bin:\$PATH\n" >> ~/.bashrc
 source ~/.bashrc
 # Sanity check
 pip list
@@ -51,6 +51,10 @@ r = device.memory_reserved(0)
 a = device.memory_allocated(0)
 f = r-a  # free inside reserved
 print("Free : ", f, "Reserved : ", r, "Allocated : ", a, "Total : ", t)
+
+Logged  => Free :  4200542720 Reserved :  5685379072 Allocated :  1484836352 Total :  6441926656
+
+6441926656 - 5685379072 = 756,547,584
 
 import psutil
 mem = psutil.virtual_memory()
@@ -118,3 +122,63 @@ ffmpeg -i %04d.jpg ../sunrise.mp4
 .\tr.cmd 1.0e10 wall_1024x576_e4l vgg16 1010 256 6
 
 pip install python-dotenv
+
+http://aws.amazon.com/contact-us/ec2-request
+
+sudo apt-get update
+sudo apt-get dist-upgrade
+sudo apt-get install python3 python3-pip python-is-python3 tuptime
+echo -e "\nexport PATH=$HOME/.local/bin:\$PATH\n" >> ~/.bashrc
+source ~/.bashrc
+git clone https://github.com/peardox/artogo.git
+cd artogo
+wget https://peardox.com/downloads/train-256.tgz
+tar zxf train-256.tar.gz
+pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
+pip install -r requirements-gpu.txt
+sudo reboot
+
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin
+sudo mv cuda-ubuntu2204.pin /etc/apt/preferences.d/cuda-repository-pin-600
+wget https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda-repo-ubuntu2204-11-7-local_11.7.0-515.43.04-1_amd64.deb
+sudo dpkg -i cuda-repo-ubuntu2204-11-7-local_11.7.0-515.43.04-1_amd64.deb
+sudo cp /var/cuda-repo-ubuntu2204-11-7-local/cuda-*-keyring.gpg /usr/share/keyrings/
+sudo apt-get update
+sudo apt-get -y install cuda
+ 
+sudo reboot
+ 
+ 
+python neural_style/neural_style.py train --net vgg16 --model-name dae-mosaic-vgg16-1010-256 --image-size 256 --style-weight 1.0e10 --style-image style-images/dae-mosaic.jpg --save-model-dir models --epochs 1 --logfile logs\dae-mosaic-vgg16-1010-256.log
+
+python neural_style/neural_style.py train --net vgg16 --model-name rnd-mosaic_1-vgg16-1010-256 --image-size 256 --style-weight 1.0e10 --style-image /dae/batch/400/noise_mosaic_1.png --save-model-dir models --epochs 1 --logfile logs\rnd-mosaic_1-vgg16-1010-256.log --limit 40000 --batch-size 4
+
+
+sudo fdisk /dev/nvme1n1
+sudo mkfs.ext3 /dev/nvme1n1p1
+mkdir space
+sudo mount /dev/nvme1n1p1 space
+sudo chown -R ubuntu.ubuntu /home/ubuntu/space
+wget https://peardox.com/downloads/train.tar.gz
+
+
+.\tr.cmd 1.0e10 pebble_1920 vgg16 1010 256 3
+Done, trained model saved at models\pebble_1920-vgg16-1010-256.pth
+Elapsed time = 5236.149935 secs
+Elapsed time = 1 hours 27 mins 16 secs
+
+.\tr.cmd 1.0e10 pebble_2 vgg16 1010 256 6
+Done, trained model saved at models\pebble_2-vgg16-1010-256.pth
+Elapsed time = 4780.199898 secs
+Elapsed time = 1 hours 19 mins 40 secs
+
+.\tr.cmd 5.0e09 pebble_3 vgg16 0950 256 8
+Done, trained model saved at models\pebble_3-vgg16-0950-256.pth
+Elapsed time = 4544.413557 secs
+Elapsed time = 1 hours 15 mins 44 secs
+
+.\tr.cmd 5.0e10 pebble_4 vgg16 1050 256 10
+Done, trained model saved at models\pebble_4-vgg16-1050-256.pth
+Elapsed time = 4639.447968 secs
+Elapsed time = 1 hours 17 mins 19 secs
+

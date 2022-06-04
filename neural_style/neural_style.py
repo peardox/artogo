@@ -20,6 +20,14 @@ from vgg import *
 import logging
 import pynvml
 
+def show_gpu_memory(label):
+    t = torch.cuda.get_device_properties(0).total_memory
+    r = torch.cuda.memory_reserved(0)
+    a = torch.cuda.memory_allocated(0)
+    f = r-a  # free inside reserved
+    print(label, " => Free : ", f, "Reserved : ", r, "Allocated : ", a, "Total : ", t)
+
+
 def check_gpu():
     try:
         torch.cuda.init()
@@ -41,7 +49,6 @@ def check_gpu():
 
     print("GPU Support : ", gpu_supported);
     return gpu_supported
-    
 
 def check_paths(args):
     try:
@@ -53,12 +60,17 @@ def check_paths(args):
         print(e)
         sys.exit(1)
 
-
-def train(args, use_gpu):
+def train(args, use_gpu, trial_batch_size):
+    if use_gpu:
+        show_gpu_memory("Entry")
+        
     device = torch.device("cuda" if use_gpu else "cpu")
-    if args.limit != 0:
-        limit = args.limit
     
+    ilimit = 0
+    if args.limit > 0:
+        ilimit = args.limit
+        print("Set limit to " + str(ilimit))
+
     logging.info("image_count, content_loss, style_loss, total_loss")
 
     np.random.seed(args.seed)
@@ -76,9 +88,16 @@ def train(args, use_gpu):
             transforms.Lambda(lambda x: x.mul(255))
         ])
     train_dataset = datasets.ImageFolder(args.dataset, transform)
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_size)
+    train_loader = DataLoader(train_dataset, batch_size=trial_batch_size)
+
+    if use_gpu:
+        show_gpu_memory("Beginning")
 
     transformer = TransformerNet().to(device)
+
+    if use_gpu:
+        show_gpu_memory("TransformerNet Assigned")
+
     optimizer = Adam(transformer.parameters(), args.lr)
     mse_loss = torch.nn.MSELoss()
 
@@ -86,18 +105,25 @@ def train(args, use_gpu):
         vgg = Vgg16(requires_grad=False).to(device)
     else:
         vgg = Vgg19(requires_grad=False).to(device)
+
+    if use_gpu:
+        show_gpu_memory("VGG Assigned")
+
     style_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Lambda(lambda x: x.mul(255))
     ])
     style = utils.load_image(args.style_image, size=args.style_size)
     style = style_transform(style)
-    style = style.repeat(args.batch_size, 1, 1, 1).to(device)
+    style = style.repeat(trial_batch_size, 1, 1, 1).to(device)
 
     image_count = 0
     
     features_style = vgg(utils.normalize_batch(style))
     gram_style = [utils.gram_matrix(y) for y in features_style]
+
+    if use_gpu:
+        show_gpu_memory("Starting Epochs")
 
     for e in range(args.epochs):
         transformer.train()
@@ -138,15 +164,19 @@ def train(args, use_gpu):
             agg_style_loss += style_loss.item()
 
             if (image_count % args.log_interval == 0) or (batch_id == 0 and e == 0):
-                mesg = "{}\tEpoch {}:\t[{}/{}]\tcontent: {:.6f}\tstyle: {:.6f}\ttotal: {:.6f}".format(
+                mesg = "{}\tEpoch {}:\t[{}/{}]\tcontent: {:.6f}\tstyle: {:.6f}\ttotal: {:.6f} {:d}".format(
                     time.ctime(), e + 1, count, len(train_dataset),
                                   agg_content_loss / (batch_id + 1),
                                   agg_style_loss / (batch_id + 1),
-                                  (agg_content_loss + agg_style_loss) / (batch_id + 1)
+                                  (agg_content_loss + agg_style_loss) / (batch_id + 1),
+                                  image_count
                 )
                 logging.info(str(image_count) + ", " + str(agg_content_loss / (batch_id + 1)) + ", " + str(agg_style_loss / (batch_id + 1)) + ", " + str((agg_content_loss + agg_style_loss) / (batch_id + 1)))
-                print("\r" + mesg)
-
+                print(str(image_count) + ", " + str(agg_content_loss / (batch_id + 1)) + ", " + str(agg_style_loss / (batch_id + 1)) + ", " + str((agg_content_loss + agg_style_loss) / (batch_id + 1)))
+            
+            # print(image_count)
+            # .\tr.cmd 2.5e08 pebble_4 vgg16 0825 256 11 --limit 10000
+            
             if args.checkpoint_model_dir is not None and (batch_id + 1) % args.checkpoint_interval == 0:
                 transformer.eval().cpu()
                 ckpt_model_filename = "ckpt_" + str(ckpt_id + 1).zfill(4) + ".pth"
@@ -155,7 +185,8 @@ def train(args, use_gpu):
                 torch.save(transformer.state_dict(), ckpt_model_path)
                 transformer.to(device).train()
                 
-            if args.limit != 0 and count >= limit:
+            if args.limit != 0 and count >= ilimit:
+                print("Limit reached : " + str(ilimit));
                 break;
 
     # save model
@@ -326,7 +357,27 @@ def main():
         
     if args.subcommand == "train":
         check_paths(args)
-        train(args, use_gpu)
+        trial_batch = args.batch_size
+        
+        while(1):
+            oom = False
+            try:
+                print("Trying batch of ", trial_batch)
+                train(args, use_gpu, trial_batch)
+            except RuntimeError as e:
+                print("Hit exception handler")
+                if trial_batch > 0:
+                    oom = True
+                else:
+                    print(e)
+                    sys.exit(1)
+            else:
+                break
+
+            if oom:
+                trial_batch -= 1
+                if use_gpu:
+                    torch.cuda.empty_cache()
     else:
         if args.movie is None:
             stylize(args, use_gpu)
