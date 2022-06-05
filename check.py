@@ -1,5 +1,5 @@
 import torch
-import pynvml
+# import pynvml
 
 try:
     torch.cuda.init()
@@ -13,7 +13,7 @@ try:
             print("CUDA Device Name : ",torch.cuda.get_device_name(x))
             print("CUDA Device Memory : ",torch.cuda.mem_get_info(x))
             print("CUDA Device Properties : ",torch.cuda.get_device_properties(x))
-            # print(torch.cuda.memory_summary(x))
+            print(torch.cuda.memory_summary(x))
 except:
     print("No supported GPUs detected")
     gpu_supported = 0

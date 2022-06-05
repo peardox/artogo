@@ -1,0 +1,249 @@
+Skip to Main Content
+
+Services
+Search for services, features, blogs, docs, and more
+[Alt+S]
+
+
+
+Global
+
+Simon Booth
+Home
+Billing
+Bills
+Payments
+Credits
+Purchase orders
+Cost & Usage Reports
+Cost Categories
+Cost allocation tags
+Free Tier
+Billing Conductor
+Cost Management
+Cost Explorer
+Budgets
+Budgets Reports
+Savings Plans
+Preferences
+Billing preferences
+Payment methods
+Consolidated billing
+Tax settings
+AWS Billing
+Credits
+CreditsInfo
+Saturday, June 4, 2022 at 10:46:00 AM GMT+1
+Redeem credit
+Credits
+Last 6 months of inactive credits
+Summary
+Total amount remaining
+$1,350.00
+Total amount used
+$0.00
+Active credits
+2
+CreditsInfo
+Find a credit
+
+1
+
+
+Expiration date
+Credit name
+Amount used
+Amount remaining
+Applicable products
+06/30/2024	AWS Activate - Founders	
+$0.00
+$1,000.00
+See complete list of services
+06/30/2023	AWS Activate - Founders Developer Support	
+$0.00
+$350.00
+AWS Support (Developer)
+Complete list of services
+
+These services can be used with the associated credit:
+
+AMAZONROUTE53REGIONALCHINA
+AWS Amplify
+AWS App Runner
+AWS AppSync
+AWS Application Migration Service
+AWS Audit Manager
+AWS Backup
+AWS Budgets
+AWS Certificate Manager
+AWS Cloud Map
+AWS CloudFormation
+AWS CloudHSM
+AWS CloudTrail
+AWS CodeArtifact
+AWS CodeCommit
+AWS CodeDeploy
+AWS CodePipeline
+AWS Config
+AWS Cost Explorer
+AWS Data Exchange
+AWS Data Pipeline
+AWS Data Transfer
+AWS DataSync
+AWS Database Migration Service
+AWS DeepRacer
+AWS Device Farm
+AWS Direct Connect
+AWS Directory Service
+AWS Elemental MediaConnect
+AWS Elemental MediaConvert
+AWS Elemental MediaLive
+AWS Elemental MediaPackage
+AWS Elemental MediaStore
+AWS Elemental MediaTailor
+AWS Firewall Manager
+AWS Global Accelerator
+AWS Glue
+AWS Glue Elastic Views
+AWS Greengrass
+AWS Ground Station
+AWS Import/Export
+AWS Import/Export Snowball
+AWS IoT
+AWS IoT 1 Click
+AWS IoT Analytics
+AWS IoT Device Defender
+AWS IoT Device Management
+AWS IoT Events
+AWS IoT SiteWise
+AWS IoT Things Graph
+AWS Key Management Service
+AWS Lambda
+AWS Network Firewall
+AWS OpsWorks
+AWS Outposts
+AWS RoboMaker
+AWS Secrets Manager
+AWS Security Hub
+AWS Service Catalog
+AWS Shield
+AWS Snowball Extra Days
+AWS Step Functions
+AWS Storage Gateway
+AWS Storage Gateway Deep Archive
+AWS Systems Manager
+AWS Transfer Family
+AWS WAF
+AWS X-Ray
+Alexa for Business
+Amazon API Gateway
+Amazon AppFlow
+Amazon AppStream
+Amazon Athena
+Amazon Augmented AI
+Amazon Braket
+Amazon Chime
+Amazon Chime Business Calling a service sold by AMCS LLC
+Amazon Chime Call Me
+Amazon Chime Dialin
+Amazon Chime Features
+Amazon Chime Voice Connector a service sold by AMCS LLC
+Amazon Cloud Directory
+Amazon CloudFront
+Amazon CloudSearch
+Amazon Cognito
+Amazon Cognito Sync
+Amazon Comprehend
+Amazon Connect
+Amazon Connect Customer Profiles
+Amazon Detective
+Amazon DevOps Guru
+Amazon DocumentDB (with MongoDB compatibility)
+Amazon DynamoDB
+Amazon EC2 Container Registry (ECR)
+Amazon ElastiCache
+Amazon Elastic Compute Cloud
+Amazon Elastic Container Service
+Amazon Elastic Container Service for Kubernetes
+Amazon Elastic File System
+Amazon Elastic Inference
+Amazon Elastic MapReduce
+Amazon Elastic Transcoder
+Amazon FSx
+Amazon Forecast
+Amazon GameLift
+Amazon Glacier
+Amazon GuardDuty
+Amazon HealthLake
+Amazon Honeycode
+Amazon Inspector
+Amazon Interactive Video Service
+Amazon Kendra
+Amazon Keyspaces (for Apache Cassandra)
+Amazon Kinesis
+Amazon Kinesis Analytics
+Amazon Kinesis Firehose
+Amazon Kinesis Video Streams
+Amazon Lex
+Amazon Lightsail
+Amazon Location Service
+Amazon Lookout for Metrics
+Amazon Lookout for Vision
+Amazon MQ
+Amazon Machine Learning
+Amazon Macie
+Amazon Managed Blockchain
+Amazon Managed Service for Prometheus
+Amazon Managed Streaming for Apache Kafka
+Amazon Managed Workflows for Apache Airflow
+Amazon Mobile Analytics
+Amazon Neptune
+Amazon Nimble Studio
+Amazon OpenSearch Service
+Amazon Personalize
+Amazon Pinpoint
+Amazon Polly
+Amazon Quantum Ledger Database
+Amazon QuickSight
+Amazon Redshift
+Amazon Rekognition
+Amazon Relational Database Service
+Amazon Route 53
+Amazon S3 Glacier Deep Archive
+Amazon SageMaker
+Amazon Simple Email Service
+Amazon Simple Notification Service
+Amazon Simple Queue Service
+Amazon Simple Storage Service
+Amazon Simple Workflow Service
+Amazon SimpleDB
+Amazon Sumerian
+Amazon Textract
+Amazon Timestream
+Amazon Transcribe
+Amazon Translate
+Amazon Virtual Private Cloud
+Amazon WorkDocs
+Amazon WorkLink
+Amazon WorkSpaces
+Amazon WorkSpaces Application Manager
+AmazonCloudWatch
+AmazonWorkMail
+CloudWatch Events
+CodeBuild
+CodeGuru
+Comprehend Medical
+Contact Center Telecommunications (service sold by AMCS, LLC)
+DynamoDB Accelerator (DAX)
+Elastic Load Balancing
+VMware Cloud on AWS
+CancelOk
+
+
+Feedback
+Looking for language selection? Find it in the new 
+Unified Settings
+© 2022, Amazon Web Services, Inc. or its affiliates.
+Privacy
+Terms
+Cookie preferences

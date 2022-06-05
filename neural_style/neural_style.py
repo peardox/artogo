@@ -378,6 +378,9 @@ def main():
                 trial_batch -= 1
                 if use_gpu:
                     torch.cuda.empty_cache()
+                if trial_batch == 0:
+                    print("No batch size found to run current training session (style image too large)")
+                    sys.exit(1)
     else:
         if args.movie is None:
             stylize(args, use_gpu)

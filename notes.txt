@@ -5,6 +5,7 @@ FNS
 https://github.com/pytorch/examples/tree/main/fast_neural_style
 https://github.com/rrmina/fast-neural-style-pytorch
 https://michhar.github.io/convert-pytorch-onnx/#a-pre-trained-model-from-torchvision
+https://pytorch.org/tutorials/advanced/neural_style_tutorial.html
 
 Nets
 Vgg16 - https://uk.mathworks.com/help/deeplearning/ref/vgg16.html
@@ -13,6 +14,22 @@ ONNX - https://github.com/onnx/models
 
 Money
 https://www.lastweekinaws.com/blog/how-to-get-free-aws-credits-4-tactics-to-use/
+
+App
+
+https://github.com/pyscripter/python4delphi/issues/144
+https://stackoverflow.com/questions/36132350/install-python-wheel-file-without-using-pip
+https://download.pytorch.org/whl/torch/ etc
+https://github.com/jimmckeeth/SkiaSimpleShaderViewer
+https://github.com/skia4delphi/skia4delphi
+
+NST
+https://pytorch.org/tutorials/advanced/neural_style_tutorial.html
+https://medium.com/@shwetaka1988/a-complete-step-wise-guide-on-neural-style-transfer-9f60b22b4f75
+
+SQLite
+https://www.sqlitetutorial.net/sqlite-python/insert/
+
 
 Ubuntu 20.04
 sudo apt-get update
@@ -181,4 +198,30 @@ Elapsed time = 1 hours 15 mins 44 secs
 Done, trained model saved at models\pebble_4-vgg16-1050-256.pth
 Elapsed time = 4639.447968 secs
 Elapsed time = 1 hours 17 mins 19 secs
+
+.\tr.cmd 1.0e09 pebble_4 vgg16 0910 256 10 --limit 20
+
+
+python neural_style/neural_style.py train --ignore-gpu 1 --net vgg16 --model-name convergence-vgg16-1010-256 --image-size 256 --style-weight 1.0e10 --style-image style-images/convergence.jpg --save-model-dir models --epochs 5 --logfile logs/convergence-vgg16-1010-256.log
+
+CUDA Available :  True
+CUDA Devices :  1
+CUDA Arch List :  ['sm_37', 'sm_50', 'sm_60', 'sm_70', 'sm_75', 'sm_80', 'sm_86']
+CUDA Capabilities :  (8, 6)
+CUDA Device Name :  NVIDIA A10G
+CUDA Device Memory :  (23423418368, 23683137536)
+CUDA Device Properties :  _CudaDeviceProperties(name='NVIDIA A10G', major=8, minor=6, total_memory=22586MB, multi_processor_count=80)
+GPU Support :  1
+
+System startups:        6  since  09:14:45 06/02/22
+System shutdowns:       5 ok  +  0 bad
+System life:            2d 3h 56m 34s
+
+System uptime:          2.04%  =  1h 3m 38s
+System downtime:        97.96%  =  2d 2h 52m 56s
+
+Average uptime:         10m 36s
+Average downtime:       10h 10m 35s
+
+Current uptime:         1m 56s  since  13:09:23 06/04/22
 
