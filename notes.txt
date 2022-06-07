@@ -19,7 +19,22 @@ App
 
 https://github.com/pyscripter/python4delphi/issues/144
 https://stackoverflow.com/questions/36132350/install-python-wheel-file-without-using-pip
-https://download.pytorch.org/whl/torch/ etc
+
+Torch
+https://download.pytorch.org/whl/torch/torch-1.11.0+cpu-cp39-cp39-linux_x86_64.whl
+https://download.pytorch.org/whl/torch/torch-1.11.0+cu113-cp39-cp39-linux_x86_64.whl
+https://download.pytorch.org/whl/torch/torch-1.11.0+cpu-cp39-cp39-win_amd64.whl
+https://download.pytorch.org/whl/torch/torch-1.11.0+cu113-cp39-cp39-win_amd64.whl
+
+TorchVision
+https://download.pytorch.org/whl/cpu/torchvision-0.12.0%2Bcpu-cp39-cp39-linux_x86_64.whl
+https://download.pytorch.org/whl/cu113/torchvision-0.12.0%2Bcu113-cp39-cp39-linux_x86_64.whl
+https://download.pytorch.org/whl/cpu/torchvision-0.12.0%2Bcpu-cp39-cp39-win_amd64.whl
+https://download.pytorch.org/whl/cu113/torchvision-0.12.0%2Bcu113-cp39-cp39-win_amd64.whl
+
+TorchAudio
+
+
 https://github.com/jimmckeeth/SkiaSimpleShaderViewer
 https://github.com/skia4delphi/skia4delphi
 
@@ -225,3 +240,36 @@ Average downtime:       10h 10m 35s
 
 Current uptime:         1m 56s  since  13:09:23 06/04/22
 
+=== Test scripts ===
+
+import sys
+
+for p in sys.path:
+    print(p)
+
+=== Test scripts ===
+
+import torch
+
+try:
+    torch.cuda.init()
+    if(torch.cuda.is_available()):
+        gpu_supported = 1
+        print("CUDA Available : ",torch.cuda.is_available())
+        print("CUDA Devices : ",torch.cuda.device_count())
+        print("CUDA Arch List : ",torch.cuda.get_arch_list())
+        for x in range(torch.cuda.device_count()):
+            print("CUDA Capabilities : ",torch.cuda.get_device_capability(x))
+            print("CUDA Device Name : ",torch.cuda.get_device_name(x))
+            print("CUDA Device Memory : ",torch.cuda.mem_get_info(x))
+            print("CUDA Device Properties : ",torch.cuda.get_device_properties(x))
+            print(torch.cuda.memory_summary(x))
+except:
+    print("No supported GPUs detected")
+    gpu_supported = 0
+
+print("GPU Support : ", gpu_supported);
+
+=== Test scripts ===
+
+AWS Activate vs AWS Startup Loft Accelerator
