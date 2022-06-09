@@ -5,6 +5,8 @@ import time
 import logging
 import torch
 from mlfuncts import *
+from cmdfuncts import *
+
 
 def check_gpu():
     try:

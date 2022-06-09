@@ -63,6 +63,7 @@ def check_paths(args):
         sys.exit(1)
 
 def train(args, use_gpu, trial_batch_size):
+    abort = False
     device = torch.device("cuda" if use_gpu else "cpu")
     
     ilimit = 0
@@ -134,7 +135,9 @@ def train(args, use_gpu, trial_batch_size):
             n_batch = len(x)
             count += n_batch
             optimizer.zero_grad()
-
+            
+            check_abort()
+            
             image_count += n_batch
             
             x = x.to(device)
@@ -183,8 +186,11 @@ def train(args, use_gpu, trial_batch_size):
                 torch.save(transformer.state_dict(), ckpt_model_path)
                 transformer.to(device).train()
                 
-            if args.limit != 0 and count >= ilimit:
-                print("Limit reached : " + str(ilimit));
+            if (args.limit != 0 and count >= ilimit) or abort:
+                if abort:
+                    print("Aborting run")
+                else:
+                    print("Limit reached : " + str(ilimit));
                 break;
 
     # save model
@@ -203,8 +209,8 @@ def train(args, use_gpu, trial_batch_size):
     logging.info(str(image_count) + ", " + str(agg_content_loss / (batch_id + 1)) + ", " + str(agg_style_loss / (batch_id + 1)) + ", " + str((agg_content_loss + agg_style_loss) / (batch_id + 1)))
     print("\r" + mesg + "\n")
     print("\nDone, trained model saved at", save_model_path)
-#    torch.onnx.export(model, dummy_input, "alexnet.onnx", verbose=True, input_names=input_names, output_names=output_names)
-
+    #    torch.onnx.export(model, dummy_input, "alexnet.onnx", verbose=True, input_names=input_names, output_names=output_names)
+        
 def stylize(args, use_gpu):
     device = torch.device("cuda" if use_gpu else "cpu")
 
