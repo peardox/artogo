@@ -5,5 +5,5 @@ def check_abort():
         print("Pressed Q")
         return True
     else:
-        print("Pressed something else")
+#        print("Pressed something else")
         return False

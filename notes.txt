@@ -1,5 +1,8 @@
 Pytorch
 https://pytorch.org/get-started/locally/
+https://github.com/pyscripter/python4delphi
+https://github.com/Embarcadero/PythonEnviroments
+https://github.com/Embarcadero/P4D-Data-Sciences
 
 FNS
 https://github.com/pytorch/examples/tree/main/fast_neural_style
@@ -12,6 +15,8 @@ Vgg16 - https://uk.mathworks.com/help/deeplearning/ref/vgg16.html
 Vgg19 - https://uk.mathworks.com/help/deeplearning/ref/vgg19.html
 ONNX - https://github.com/onnx/models
 
+https://github.com/ysh329/deep-learning-model-convertor
+
 Money
 https://www.lastweekinaws.com/blog/how-to-get-free-aws-credits-4-tactics-to-use/
 
@@ -19,6 +24,10 @@ App
 
 https://github.com/pyscripter/python4delphi/issues/144
 https://stackoverflow.com/questions/36132350/install-python-wheel-file-without-using-pip
+https://blogs.embarcadero.com/put-ai-in-your-app-to-make-fast-style-art/
+https://github.com/brunomileto/deepai_api
+https://www.youtube.com/watch?v=7G_geIOTTiw
+https://github.com/ifueko/arbitrary-neural-style-transfer
 
 Torch
 https://download.pytorch.org/whl/torch/torch-1.11.0+cpu-cp39-cp39-linux_x86_64.whl
@@ -251,6 +260,7 @@ for p in sys.path:
 
 import torch
 
+gpu_supported = 0
 try:
     torch.cuda.init()
     if(torch.cuda.is_available()):
@@ -266,10 +276,17 @@ try:
             print(torch.cuda.memory_summary(x))
 except:
     print("No supported GPUs detected")
-    gpu_supported = 0
+
 
 print("GPU Support : ", gpu_supported);
 
 === Test scripts ===
 
 AWS Activate vs AWS Startup Loft Accelerator
+
+=======================
+pip list --format json
+
+import sys
+for p in sys.path:
+    print(p)
