@@ -41,6 +41,7 @@ def train(args, use_gpu, trial_batch_size):
     agg_content_loss = 0
     agg_style_loss = 0.
     count = 0
+    image_count = 0
     ckpt_id = 0
     batch_id = 0
     
