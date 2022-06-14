@@ -45,7 +45,7 @@ def main():
                                   help="batch size for training, default is 4")
     train_arg_parser.add_argument("--force-size", type=int, default=1,
                                   help="If set to 1 all training images are resized")
-    train_arg_parser.add_argument("--dataset", type=str, default="train/coco2017/512",
+    train_arg_parser.add_argument("--dataset", type=str, default="train/coco2017/256",
                                   help="path to training dataset, the path should point to a folder "
                                        "containing another folder with all the training images")
     train_arg_parser.add_argument("--style-image", type=str, default="images/style-images/mosaic.jpg",
