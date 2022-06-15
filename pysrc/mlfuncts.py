@@ -37,6 +37,7 @@ def check_paths(args):
 
 def train(args, use_gpu, trial_batch_size):
     abort_flag = False
+    except_flag = False
     e = 0
     agg_content_loss = 0
     agg_style_loss = 0.
@@ -44,16 +45,24 @@ def train(args, use_gpu, trial_batch_size):
     image_count = 0
     ckpt_id = 0
     batch_id = 0
+    reporting_interval = 1
+    train_start = time.time()
+    train_reported = 0
+    reporting_line = 0
+    total_images = 1 # for div by zero prevention
+    epochs = args.epochs;
     
     try:
         device = torch.device("cuda" if use_gpu else "cpu")
-        
+        torch.set_num_threads(os.cpu_count())
+
         ilimit = 0
         if args.limit > 0:
             ilimit = args.limit
             print("Set limit to " + str(ilimit))
-
-        logging.info("image_count, content_loss, style_loss, total_loss")
+            total_images = epochs * ilimit
+            
+        logging.info("image_count, train_elapsed, content_loss, style_loss, total_loss")
 
         np.random.seed(args.seed)
         torch.manual_seed(args.seed)
@@ -72,6 +81,9 @@ def train(args, use_gpu, trial_batch_size):
         train_dataset = datasets.ImageFolder(args.dataset, transform)
         train_loader = DataLoader(train_dataset, batch_size=trial_batch_size)
 
+        if ilimit == 0:
+            total_images = epochs * len(train_dataset)
+            
         # GPU is unused at this point
 
         transformer = TransformerNet().to(device)
@@ -106,7 +118,7 @@ def train(args, use_gpu, trial_batch_size):
         if use_gpu:
             show_gpu_memory("Starting Epochs")
 
-        for e in range(args.epochs):
+        for e in range(epochs):
             transformer.train()
             agg_content_loss = 0.
             agg_style_loss = 0.
@@ -144,16 +156,36 @@ def train(args, use_gpu, trial_batch_size):
                 agg_content_loss += content_loss.item()
                 agg_style_loss += style_loss.item()
 
-                if (image_count % args.log_interval == 0) or (batch_id == 0 and e == 0):
-                    mesg = "{}\tEpoch {}:\t[{}/{}]\tcontent: {:.6f}\tstyle: {:.6f}\ttotal: {:.6f} {:d}".format(
-                        time.ctime(), e + 1, count, len(train_dataset),
-                                      agg_content_loss / (batch_id + 1),
-                                      agg_style_loss / (batch_id + 1),
-                                      (agg_content_loss + agg_style_loss) / (batch_id + 1),
-                                      image_count
-                    )
-                    logging.info(str(image_count) + ", " + str(agg_content_loss / (batch_id + 1)) + ", " + str(agg_style_loss / (batch_id + 1)) + ", " + str((agg_content_loss + agg_style_loss) / (batch_id + 1)))
-                    print(str(image_count) + ", " + str(agg_content_loss / (batch_id + 1)) + ", " + str(agg_style_loss / (batch_id + 1)) + ", " + str((agg_content_loss + agg_style_loss) / (batch_id + 1)))
+                if True:
+#                if (image_count % args.log_interval == 0) or (batch_id == 0 and e == 0):
+                    train_elapsed = time.time() - train_start
+                    train_interval = train_elapsed - train_reported
+                    if train_interval > reporting_interval:
+                        reporting_line += 1
+                        train_reported = train_elapsed
+                        train_completion = image_count / total_images
+                        train_eta = 0
+                        train_left = 0
+                        if train_completion > 0:
+                            train_eta = train_elapsed / train_completion
+                            train_left = train_eta - train_elapsed
+                        
+                        mesg = str(image_count) + ", " \
+                            + str(train_elapsed) + ", " \
+                            + str(train_interval) + ", " \
+                            + str(agg_content_loss / (batch_id + 1)) + ", " \
+                            + str(agg_style_loss / (batch_id + 1)) + ", " \
+                            + str((agg_content_loss + agg_style_loss) / (batch_id + 1)) \
+                            + ", " + str(reporting_line) \
+                            + ", " + str(train_completion) \
+                            + ", " + str(total_images) \
+                            + ", " + str(train_eta) \
+                            + ", " + str(train_left)
+
+                        logging.info(mesg)
+                        print("==> " + mesg)
+
+#                    print(train_elapsed, train_reported, reporting_interval)
                 
                 # print(image_count)
                 # .\tr.cmd 2.5e08 pebble_4 vgg16 0825 256 11 --limit 10000
@@ -170,7 +202,7 @@ def train(args, use_gpu, trial_batch_size):
                     if abort_flag:
                         print("Aborting run")
                     else:
-                        print("Limit reached : " + str(ilimit));
+                        pass # print("Limit reached : " + str(ilimit));
                     break;
                     
                 abort_flag = check_abort()
@@ -178,10 +210,11 @@ def train(args, use_gpu, trial_batch_size):
     except KeyboardInterrupt:
         print("Stopping run - please wait")
         abort_flag = True
+        except_flag = True
     finally:
         # save model
         transformer.eval().cpu()
-        # save_model_filename = "epoch_" + str(args.epochs) + "_" + str(time.ctime()).replace(' ', '_') + "_" + str(args.content_weight) + "_" + str(args.style_weight) + ".model"
+        # save_model_filename = "epoch_" + str(epochs) + "_" + str(time.ctime()).replace(' ', '_') + "_" + str(args.content_weight) + "_" + str(args.style_weight) + ".model"
         save_model_filename = args.model_name + '.pth'
         save_model_path = os.path.join(args.save_model_dir, save_model_filename)
         torch.save(transformer.state_dict(), save_model_path)
