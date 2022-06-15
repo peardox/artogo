@@ -62,7 +62,7 @@ def train(args, use_gpu, trial_batch_size):
             print("Set limit to " + str(ilimit))
             total_images = epochs * ilimit
             
-        logging.info("image_count, train_elapsed, content_loss, style_loss, total_loss")
+        logging.info("image_count, train_elapsed, train_interval, content_loss, style_loss, total_loss, reporting_line, train_completion, total_images, train_eta, train_left")
 
         np.random.seed(args.seed)
         torch.manual_seed(args.seed)
