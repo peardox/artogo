@@ -43,9 +43,11 @@ def main():
                                   help="Limit training data to this value, default is 0 (no limit)")
     train_arg_parser.add_argument("--batch-size", type=int, default=4,
                                   help="batch size for training, default is 4")
-    train_arg_parser.add_argument("--force-size", type=int, default=1,
+#    train_arg_parser.add_argument("--force-size", type=int, default=1,
+    train_arg_parser.add_argument("--force-size", type=int, default=0,
                                   help="If set to 1 all training images are resized")
-    train_arg_parser.add_argument("--dataset", type=str, default="train/coco2017/256",
+#    train_arg_parser.add_argument("--dataset", type=str, default="train/coco2017/256",
+    train_arg_parser.add_argument("--dataset", type=str, default="/train/unsplash/256",
                                   help="path to training dataset, the path should point to a folder "
                                        "containing another folder with all the training images")
     train_arg_parser.add_argument("--style-image", type=str, default="images/style-images/mosaic.jpg",
@@ -110,15 +112,15 @@ def main():
     if not args.ignore_gpu:
         use_gpu = check_gpu()
 
-    if args.subcommand == "train" and args.logfile is not None:
-        logging.basicConfig(filename=args.logfile, encoding='utf-8', format='%(message)s', level=logging.INFO, filemode='w')
-        print("Logging to ", args.logfile)
-
     if args.subcommand == "train":
         check_paths(args)
         trial_batch = args.batch_size
         
         while(1):
+            if args.logfile is not None:
+                logging.basicConfig(filename=args.logfile, filemode='w', encoding='utf-8', format='%(message)s', level=logging.INFO)
+                print("Logging to ", args.logfile)
+
             oom = False
             try:
                 print("Trying batch of ", trial_batch)

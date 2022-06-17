@@ -10,6 +10,9 @@ https://github.com/rrmina/fast-neural-style-pytorch
 https://michhar.github.io/convert-pytorch-onnx/#a-pre-trained-model-from-torchvision
 https://pytorch.org/tutorials/advanced/neural_style_tutorial.html
 
+Preserve colour
+https://github.com/jimmyyhwu/style-transfer
+
 Nets
 Vgg16 - https://uk.mathworks.com/help/deeplearning/ref/vgg16.html
 Vgg19 - https://uk.mathworks.com/help/deeplearning/ref/vgg19.html

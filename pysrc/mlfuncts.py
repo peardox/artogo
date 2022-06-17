@@ -52,7 +52,7 @@ def train(args, use_gpu, trial_batch_size):
     total_images = 1 # for div by zero prevention
     epochs = args.epochs;
     last_reported_image_count = 0
-
+    first_pass = True
     ilimit = 0
     
     try:
@@ -109,6 +109,11 @@ def train(args, use_gpu, trial_batch_size):
         
         features_style = vgg(utils.normalize_batch(style))
         gram_style = [utils.gram_matrix(y) for y in features_style]
+
+
+        if first_pass:
+            train_start = time.time()
+            first_pass = False
 
         for e in range(epochs):
             transformer.train()
@@ -233,6 +238,8 @@ def train(args, use_gpu, trial_batch_size):
             print("==> " + mesg)
 
         print("\nDone, trained model saved at", save_model_path)
+        print("Batch size =", trial_batch_size, "- Epochs =", epochs)
+        
         #    torch.onnx.export(model, dummy_input, "alexnet.onnx", verbose=True, input_names=input_names, output_names=output_names)
 
 def stylize(args, use_gpu):

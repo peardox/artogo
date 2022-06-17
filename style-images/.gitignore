@@ -2,6 +2,7 @@
 *
 # Except this file
 !.gitignore
+!mona.jpg
 *.jpg
 *.png
 *.txt
