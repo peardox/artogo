@@ -134,6 +134,7 @@ def main():
                 break
 
             if oom:
+                start = time.time()
                 trial_batch -= 1
                 if use_gpu:
                     torch.cuda.empty_cache()
