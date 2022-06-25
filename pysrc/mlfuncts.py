@@ -214,47 +214,48 @@ def train(args, use_gpu, trial_batch_size):
                     
                 abort_flag = check_abort()
 
-    except KeyboardInterrupt:
+    except:
         print("Stopping run - please wait")
-        abort_flag = True
+        abort_flag = False
         except_flag = True
     finally:
-        # save model
-        transformer.eval().cpu()
-        # save_model_filename = "epoch_" + str(epochs) + "_" + str(time.ctime()).replace(' ', '_') + "_" + str(args.content_weight) + "_" + str(args.style_weight) + ".model"
-        save_model_filename = args.model_name + '.pth'
-        save_model_path = os.path.join(args.save_model_dir, save_model_filename)
-        torch.save(transformer.state_dict(), save_model_path)
+        if not except_flag:
+            # save model
+            transformer.eval().cpu()
+            # save_model_filename = "epoch_" + str(epochs) + "_" + str(time.ctime()).replace(' ', '_') + "_" + str(args.content_weight) + "_" + str(args.style_weight) + ".model"
+            save_model_filename = args.model_name + '.pth'
+            save_model_path = os.path.join(args.save_model_dir, save_model_filename)
+            torch.save(transformer.state_dict(), save_model_path)
 
-        if last_reported_image_count != image_count:
-            reporting_line += 1
-            train_reported = train_elapsed
-            train_completion = image_count / total_images
-            last_reported_image_count = image_count
-            train_eta = 0
-            train_left = 0
-            if train_completion > 0:
-                train_eta = train_elapsed / train_completion
-                train_left = train_eta - train_elapsed
+            if last_reported_image_count != image_count:
+                reporting_line += 1
+                train_reported = train_elapsed
+                train_completion = image_count / total_images
+                last_reported_image_count = image_count
+                train_eta = 0
+                train_left = 0
+                if train_completion > 0:
+                    train_eta = train_elapsed / train_completion
+                    train_left = train_eta - train_elapsed
+                
+                mesg = str(image_count) + ", " \
+                    + str(train_elapsed) + ", " \
+                    + str(train_interval) + ", " \
+                    + str(round(agg_content_loss / (batch_id + 1))) + ", " \
+                    + str(round(agg_style_loss / (batch_id + 1))) + ", " \
+                    + str(round((agg_content_loss + agg_style_loss) / (batch_id + 1))) \
+                    + ", " + str(reporting_line) \
+                    + ", " + str(train_completion) \
+                    + ", " + str(total_images) \
+                    + ", " + str(train_eta) \
+                    + ", " + str(train_left)
+
+                logging.info(mesg)
+                print("==> " + mesg)
+
+            print("\nDone, trained model saved at", save_model_path)
+            print("Batch size =", trial_batch_size, "- Epochs =", epochs)
             
-            mesg = str(image_count) + ", " \
-                + str(train_elapsed) + ", " \
-                + str(train_interval) + ", " \
-                + str(round(agg_content_loss / (batch_id + 1))) + ", " \
-                + str(round(agg_style_loss / (batch_id + 1))) + ", " \
-                + str(round((agg_content_loss + agg_style_loss) / (batch_id + 1))) \
-                + ", " + str(reporting_line) \
-                + ", " + str(train_completion) \
-                + ", " + str(total_images) \
-                + ", " + str(train_eta) \
-                + ", " + str(train_left)
-
-            logging.info(mesg)
-            print("==> " + mesg)
-
-        print("\nDone, trained model saved at", save_model_path)
-        print("Batch size =", trial_batch_size, "- Epochs =", epochs)
-        
         #    torch.onnx.export(model, dummy_input, "alexnet.onnx", verbose=True, input_names=input_names, output_names=output_names)
 
 def stylize(args, use_gpu):
