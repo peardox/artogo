@@ -4,14 +4,26 @@ https://github.com/pyscripter/python4delphi
 https://github.com/Embarcadero/PythonEnviroments
 https://github.com/Embarcadero/P4D-Data-Sciences
 
+Delphi
+https://blogs.embarcadero.com/learn-about-using-delphi-methods-as-python-functions-with-python4delphi-sample-app/
+
+Python
+PyArg_ParseTuple - https://docs.python.org/3/c-api/arg.html
+
+Colour
+https://en.wikipedia.org/wiki/Alpha_compositing
+https://en.wikipedia.org/wiki/Blend_modes
+
 FNS
 https://github.com/pytorch/examples/tree/main/fast_neural_style
 https://github.com/rrmina/fast-neural-style-pytorch
 https://michhar.github.io/convert-pytorch-onnx/#a-pre-trained-model-from-torchvision
 https://pytorch.org/tutorials/advanced/neural_style_tutorial.html
+https://github.com/gnsmrky/pytorch-fast-neural-style-for-web/blob/master/README.md
 
 Preserve colour
 https://github.com/jimmyyhwu/style-transfer
+https://lettier.github.io/3d-game-shaders-for-beginners/lookup-table.html
 
 Nets
 Vgg16 - https://uk.mathworks.com/help/deeplearning/ref/vgg16.html
@@ -255,8 +267,13 @@ Current uptime:         1m 56s  since  13:09:23 06/04/22
 === Test scripts ===
 
 import sys
-
 for p in sys.path:
+    print(p)
+
+import sys
+for p in reversed(sys.path):
+    if p == "C:\src\EmbedTest\pysrc":
+        sys.path.remove(p)
     print(p)
 
 === Test scripts ===
@@ -293,3 +310,20 @@ pip list --format json
 import sys
 for p in sys.path:
     print(p)
+
+eval --content-image C:\git\artogo\input-images\haywain.jpg --model C:\Dev\fns\saved_models\mosaic.pth --output-image ..\output.png --cuda 0
+
+
+$(Platform)\$(Config)
+
+GPU + 16T
+Done, trained model saved at models\test.pth
+Batch size = 4 - Epochs = 2
+Elapsed time = 2265.855212 secs
+Elapsed time = 0 hours 37 mins 45 secs
+
+
+Done, trained model saved at models\test.pth
+Batch size = 4 - Epochs = 2
+Elapsed time = 2231.609028 secs
+Elapsed time = 0 hours 37 mins 11 secs

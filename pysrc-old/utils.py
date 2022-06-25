@@ -10,6 +10,7 @@ def load_image(filename, size=None, scale=None):
         img = img.resize((int(img.size[0] / scale), int(img.size[1] / scale)), Image.ANTIALIAS)
     return img
 
+
 def save_image(filename, data):
     img = data.clone().clamp(0, 255).numpy()
     img = img.transpose(1, 2, 0).astype("uint8")

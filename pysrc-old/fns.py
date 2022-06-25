@@ -44,8 +44,10 @@ def main():
     train_arg_parser.add_argument("--batch-size", type=int, default=4,
                                   help="batch size for training, default is 4")
     train_arg_parser.add_argument("--force-size", type=int, default=1,
+#    train_arg_parser.add_argument("--force-size", type=int, default=0,
                                   help="If set to 1 all training images are resized")
     train_arg_parser.add_argument("--dataset", type=str, default="train/coco2017/512",
+#    train_arg_parser.add_argument("--dataset", type=str, default="/train/unsplash/256",
                                   help="path to training dataset, the path should point to a folder "
                                        "containing another folder with all the training images")
     train_arg_parser.add_argument("--style-image", type=str, default="images/style-images/mosaic.jpg",
@@ -97,9 +99,9 @@ def main():
     eval_arg_parser.add_argument("--movie", type=str, default=None,
                                  help="path to movie styles")
     eval_arg_parser.add_argument("--add-model-ext", type=int, default=1,
-                                 help="Add model ext or not")
+                                 help="Add movie path ot not")
     eval_arg_parser.add_argument("--logfile", type=str, default=None,
-                                  help="Optional log file location")
+                                  help="Optional lof file location")
     args = main_arg_parser.parse_args()
     
     if args.subcommand is None:
@@ -110,15 +112,15 @@ def main():
     if not args.ignore_gpu:
         use_gpu = check_gpu()
 
-    if args.subcommand == "train" and args.logfile is not None:
-        logging.basicConfig(filename=args.logfile, encoding='utf-8', format='%(message)s', level=logging.INFO, filemode='w')
-        print("Logging to ", args.logfile)
-
     if args.subcommand == "train":
         check_paths(args)
         trial_batch = args.batch_size
         
         while(1):
+            if args.logfile is not None:
+                logging.basicConfig(filename=args.logfile, filemode='w', encoding='utf-8', format='%(message)s', level=logging.INFO)
+                print("Logging to ", args.logfile)
+
             oom = False
             try:
                 print("Trying batch of ", trial_batch)
@@ -142,7 +144,6 @@ def main():
                     sys.exit(1)
     else:
         if args.movie is None:
-            args.content_image_raw = None
             stylize(args, use_gpu)
         else:
             frame_id = 0;
@@ -176,7 +177,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-'''
-python pysrc/fns.py train --epochs 2 --batch-size 8 --dataset /train/unsplash/256 --style-image style-images/random_sketch_1.jpg --model-name test-dae-sketch1-256 --image-size 256 --logfile logs/test.log --style-weight 1e10 --net vgg16 --save-model-dir models
-          
-'''

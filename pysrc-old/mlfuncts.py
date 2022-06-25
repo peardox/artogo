@@ -36,6 +36,10 @@ def check_paths(args):
         
 
 def train(args, use_gpu, trial_batch_size):
+    class CheckOpts:
+      def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
     abort_flag = False
     except_flag = False
     e = 0
@@ -56,20 +60,17 @@ def train(args, use_gpu, trial_batch_size):
     ilimit = 0
     train_elapsed = 0
     train_interval = 0
-    last_delta = 1
-    train_left = 1
-    last_train = 0
     
     try:
         device = torch.device("cuda" if use_gpu else "cpu")
-        # torch.set_num_threads(os.cpu_count())
+        torch.set_num_threads(os.cpu_count())
 
         if args.limit > 0:
             ilimit = args.limit
             print("Set limit to " + str(ilimit))
             total_images = epochs * ilimit
             
-        logging.info("image_count, train_elapsed, train_interval, content_loss, style_loss, total_loss, reporting_line, train_completion, total_images, train_eta, train_left, delta_time")
+        logging.info("image_count, train_elapsed, train_interval, content_loss, style_loss, total_loss, reporting_line, train_completion, total_images, train_eta, train_left")
 
         np.random.seed(args.seed)
         torch.manual_seed(args.seed)
@@ -166,20 +167,11 @@ def train(args, use_gpu, trial_batch_size):
                     train_completion = image_count / total_images
                     last_reported_image_count = image_count
                     train_eta = 0
-                    if last_train == 0:
-                        last_train = train_elapsed
-                    else:
-                        last_train = train_left
-                    train_delta = 1
-                    
+                    train_left = 0
                     if train_completion > 0:
                         train_eta = train_elapsed / train_completion
                         train_left = train_eta - train_elapsed
-                        if last_train == 0:
-                            train_delta = 0
-                        else:
-                            train_delta = 1 - (train_left / last_train)
-
+                    
                     mesg = str(image_count) + ", " \
                         + str(train_elapsed) + ", " \
                         + str(train_interval) + ", " \
@@ -190,8 +182,7 @@ def train(args, use_gpu, trial_batch_size):
                         + ", " + str(train_completion) \
                         + ", " + str(total_images) \
                         + ", " + str(train_eta) \
-                        + ", " + str(train_left) \
-                        + ", " + str(train_delta)
+                        + ", " + str(train_left)
 
                     logging.info(mesg)
                     print("==> " + mesg)
@@ -199,12 +190,25 @@ def train(args, use_gpu, trial_batch_size):
                 
                 if args.checkpoint_model_dir is not None and (batch_id + 1) % args.checkpoint_interval == 0:
                     transformer.eval().cpu()
+                    
+                    opts = CheckOpts( content_image = args.style_image,
+                        output_image = "output-images\checkpoint.jpg",
+                        model = transformer,
+                        model_dir = "models",
+                        content_scale = 1,
+                        cuda = 0,
+                        ignore_gpu = 1,
+                        export_onnx = None,
+                        movie = None,
+                        add_model_ext = 1,
+                        logfile = None)
+"""                    
                     ckpt_model_filename = "ckpt_" + str(ckpt_id + 1).zfill(4) + ".pth"
                     ckpt_id += 1;
                     ckpt_model_path = os.path.join(args.checkpoint_model_dir, ckpt_model_filename)
                     torch.save(transformer.state_dict(), ckpt_model_path)
                     transformer.to(device).train()
-                    
+"""                 
                 if (args.limit != 0 and count >= ilimit) or abort_flag:
                     if abort_flag:
                         print("Aborting run")
@@ -214,57 +218,55 @@ def train(args, use_gpu, trial_batch_size):
                     
                 abort_flag = check_abort()
 
-    except KeyboardInterrupt:
+    except:
         print("Stopping run - please wait")
         abort_flag = True
         except_flag = True
     finally:
         # save model
-        transformer.eval().cpu()
-        # save_model_filename = "epoch_" + str(epochs) + "_" + str(time.ctime()).replace(' ', '_') + "_" + str(args.content_weight) + "_" + str(args.style_weight) + ".model"
-        save_model_filename = args.model_name + '.pth'
-        save_model_path = os.path.join(args.save_model_dir, save_model_filename)
-        torch.save(transformer.state_dict(), save_model_path)
+        if not except_flag:
+            transformer.eval().cpu()
+            # save_model_filename = "epoch_" + str(epochs) + "_" + str(time.ctime()).replace(' ', '_') + "_" + str(args.content_weight) + "_" + str(args.style_weight) + ".model"
+            save_model_filename = args.model_name + '.pth'
+            save_model_path = os.path.join(args.save_model_dir, save_model_filename)
+            torch.save(transformer.state_dict(), save_model_path)
 
-        if last_reported_image_count != image_count:
-            reporting_line += 1
-            train_reported = train_elapsed
-            train_completion = image_count / total_images
-            last_reported_image_count = image_count
-            train_eta = 0
-            train_left = 0
-            if train_completion > 0:
-                train_eta = train_elapsed / train_completion
-                train_left = train_eta - train_elapsed
-            
-            mesg = str(image_count) + ", " \
-                + str(train_elapsed) + ", " \
-                + str(train_interval) + ", " \
-                + str(round(agg_content_loss / (batch_id + 1))) + ", " \
-                + str(round(agg_style_loss / (batch_id + 1))) + ", " \
-                + str(round((agg_content_loss + agg_style_loss) / (batch_id + 1))) \
-                + ", " + str(reporting_line) \
-                + ", " + str(train_completion) \
-                + ", " + str(total_images) \
-                + ", " + str(train_eta) \
-                + ", " + str(train_left)
+            if last_reported_image_count != image_count:
+                reporting_line += 1
+                train_reported = train_elapsed
+                train_completion = image_count / total_images
+                last_reported_image_count = image_count
+                train_eta = 0
+                train_left = 0
+                if train_completion > 0:
+                    train_eta = train_elapsed / train_completion
+                    train_left = train_eta - train_elapsed
+                
+                mesg = str(image_count) + ", " \
+                    + str(train_elapsed) + ", " \
+                    + str(train_interval) + ", " \
+                    + str(round(agg_content_loss / (batch_id + 1))) + ", " \
+                    + str(round(agg_style_loss / (batch_id + 1))) + ", " \
+                    + str(round((agg_content_loss + agg_style_loss) / (batch_id + 1))) \
+                    + ", " + str(reporting_line) \
+                    + ", " + str(train_completion) \
+                    + ", " + str(total_images) \
+                    + ", " + str(train_eta) \
+                    + ", " + str(train_left)
 
-            logging.info(mesg)
-            print("==> " + mesg)
+                logging.info(mesg)
+                print("==> " + mesg)
 
-        print("\nDone, trained model saved at", save_model_path)
-        print("Batch size =", trial_batch_size, "- Epochs =", epochs)
+            print("\nDone, trained model saved at", save_model_path)
+            print("Batch size =", trial_batch_size, "- Epochs =", epochs)
         
         #    torch.onnx.export(model, dummy_input, "alexnet.onnx", verbose=True, input_names=input_names, output_names=output_names)
 
 def stylize(args, use_gpu):
     device = torch.device("cuda" if use_gpu else "cpu")
-    
-    if args.content_image_raw == None:
-        content_image = utils.load_image(args.content_image, scale=args.content_scale)
-    else:
-        content_image = content_image_raw
 
+    content_image = utils.load_image(args.content_image, scale=args.content_scale)
+    
     content_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Lambda(lambda x: x.mul(255))
