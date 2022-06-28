@@ -10,6 +10,9 @@ https://blogs.embarcadero.com/learn-about-using-delphi-methods-as-python-functio
 Python
 PyArg_ParseTuple - https://docs.python.org/3/c-api/arg.html
 
+AWS
+https://docs.aws.amazon.com/sdk-for-php/v3/developer-guide/ec2-examples-managing-instances.html
+
 Colour
 https://en.wikipedia.org/wiki/Alpha_compositing
 https://en.wikipedia.org/wiki/Blend_modes
@@ -327,3 +330,47 @@ Done, trained model saved at models\test.pth
 Batch size = 4 - Epochs = 2
 Elapsed time = 2231.609028 secs
 Elapsed time = 0 hours 37 mins 11 secs
+
+AWS-GPU
+
+Done, trained model saved at models/test-dae-sketch1-512.pth
+Batch size = 10 - Epochs = 4
+OOM - False
+All OK - break
+Elapsed time = 6864.410586 secs
+Elapsed time = 1 hours 54 mins 24 secs
+
+Done, trained model saved at models/test-dae-abstract1-512.pth
+Batch size = 10 - Epochs = 4
+OOM - False
+All OK - break
+Elapsed time = 6807.075589 secs
+Elapsed time = 1 hours 53 mins 27 secs
+
+
+Done, trained model saved at models/test-dae-gothic-256-16.pth
+Batch size = 36 - Epochs = 16
+Elapsed time = 6564.296636 secs
+Elapsed time = 1 hours 49 mins 24 secs
+
+CUDA Available :  True
+CUDA Devices :  1
+CUDA Arch List :  ['sm_37', 'sm_50', 'sm_60', 'sm_70', 'sm_75', 'sm_80', 'sm_86']
+CUDA Capabilities :  (8, 6)
+CUDA Device Name :  NVIDIA A10G
+CUDA Device Memory :  (23423418368, 23683137536)
+CUDA Device Properties :  _CudaDeviceProperties(
+name='NVIDIA A10G', major=8, minor=6, total_memory=22586MB, multi_processor_count=80)
+GPU Support :  1
+Logging to  logs/abstract1-256-16.log
+
+==> 399747, 6549.4532215595245, 1.1762058734893799, 345498, 87749, 433248, 5551, 0.9998074152627155, 399824, 6550.714789246237, 1.261567686712624, 0.48322174813337837
+==> 399819, 6550.633252859116, 1.1800312995910645, 345473, 87755, 433228, 5552, 0.999987494497579, 399824, 6550.715172843569, 0.08191998445363424, 0.9350649312625466
+==> 399824, 6550.726595878601, 0.09334301948547363, 345436, 87745, 433181, 5553, 1.0, 399824, 6550.726595878601, 0.0
+
+Done, trained model saved at models/test-dae-abstract1-256-16.pth
+Batch size = 36 - Epochs = 16
+OOM - False
+All OK - break
+Elapsed time = 6555.197104 secs
+Elapsed time = 1 hours 49 mins 15 secs

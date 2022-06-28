@@ -30,6 +30,16 @@ def check_gpu():
     print("GPU Support : ", gpu_supported);
     return gpu_supported
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+        
 def main():
     start = time.time()
     
@@ -43,7 +53,7 @@ def main():
                                   help="Limit training data to this value, default is 0 (no limit)")
     train_arg_parser.add_argument("--batch-size", type=int, default=4,
                                   help="batch size for training, default is 4")
-    train_arg_parser.add_argument("--force-size", type=int, default=1,
+    train_arg_parser.add_argument("--force-size", type=str2bool, default=True,
                                   help="If set to 1 all training images are resized")
     train_arg_parser.add_argument("--dataset", type=str, default="train/coco2017/512",
                                   help="path to training dataset, the path should point to a folder "
@@ -52,17 +62,19 @@ def main():
                                   help="path to style-image")
     train_arg_parser.add_argument("--model-name", type=str, default="test",
                                   help="model name")
-    train_arg_parser.add_argument("--save-model-dir", type=str, required=True,
+    train_arg_parser.add_argument("--model-dir", type=str, required=True,
                                   help="path to folder where trained model will be saved.")
-    train_arg_parser.add_argument("--checkpoint-model-dir", type=str, default=None,
+    train_arg_parser.add_argument("--checkpoint-model-dir", type=str, default="",
                                   help="path to folder where checkpoints of trained models will be saved")
-    train_arg_parser.add_argument("--image-size", type=int, default=384,
-                                  help="size of training images, default is 384 X 384")
-    train_arg_parser.add_argument("--style-size", type=int, default=None,
+    train_arg_parser.add_argument("--image-size", type=int, default=256,
+                                  help="size of training images, default is 256 X 256")
+    train_arg_parser.add_argument("--model-ext", type=str, default=".pth",
+                                  help="model extension (include dot)")
+    train_arg_parser.add_argument("--style-scale", type=float, default=1,
                                   help="size of style-image, default is the original size of style image")
-    train_arg_parser.add_argument("--logfile", type=str, default=None,
+    train_arg_parser.add_argument("--logfile", type=str, default="",
                                   help="Optional lof file location")
-    train_arg_parser.add_argument("--ignore-gpu", type=int, default=0,
+    train_arg_parser.add_argument("--ignore-gpu", type=str2bool, default=False,
                                   help="Set it to 1 to ignore GPU if detected")
     train_arg_parser.add_argument("--seed", type=int, default=42,
                                   help="random seed for training")
@@ -78,27 +90,33 @@ def main():
                                   help="number of images after which the training loss is logged, default is 500")
     train_arg_parser.add_argument("--checkpoint-interval", type=int, default=1000,
                                   help="number of batches after which a checkpoint of the trained model will be created")
+    train_arg_parser.add_argument("--cuda", type=str2bool, default=True,
+                                 help="Use CUDA if available")
 
     eval_arg_parser = subparsers.add_parser("eval", help="parser for evaluation/stylizing arguments")
     eval_arg_parser.add_argument("--content-image", type=str, required=True,
                                  help="path to content image you want to stylize")
-    eval_arg_parser.add_argument("--content-scale", type=float, default=None,
+    eval_arg_parser.add_argument("--content-image-raw", type=str, default="",
+                                 help="Raw content image (Placeholder)")
+    eval_arg_parser.add_argument("--content-scale", type=float, default=1,
                                  help="factor for scaling down the content image")
     eval_arg_parser.add_argument("--output-image", type=str, required=True,
                                  help="path for saving the output image")
     eval_arg_parser.add_argument("--model", type=str, required=True,
                                  help="saved model to be used for stylizing the image. If file ends in .pth - PyTorch path is used, if in .onnx - Caffe2 path")
-    eval_arg_parser.add_argument("--model-dir", type=str, default="models",
+    eval_arg_parser.add_argument("--model-dir", type=str, required=True,
                                  help="Path to saved models")
-    eval_arg_parser.add_argument("--ignore-gpu", type=int, default=0,
+    eval_arg_parser.add_argument("--model-ext", type=str, default=".pth",
+                                  help="model extension (include dot)")
+    eval_arg_parser.add_argument("--ignore-gpu", type=str2bool, default=False,
                                   help="Set it to 1 to ignore GPU if detected")
-    eval_arg_parser.add_argument("--export_onnx", type=str,
+    eval_arg_parser.add_argument("--export_onnx", type=str2bool, default=False,
                                  help="export ONNX model to a given file")
-    eval_arg_parser.add_argument("--movie", type=str, default=None,
-                                 help="path to movie styles")
-    eval_arg_parser.add_argument("--add-model-ext", type=int, default=1,
+    eval_arg_parser.add_argument("--add-model-ext", type=str2bool, default=True,
                                  help="Add model ext or not")
-    eval_arg_parser.add_argument("--logfile", type=str, default=None,
+    eval_arg_parser.add_argument("--cuda", type=str2bool, default=True,
+                                 help="Use CUDA if available")
+    eval_arg_parser.add_argument("--logfile", type=str, default="",
                                   help="Optional log file location")
     args = main_arg_parser.parse_args()
     
@@ -134,7 +152,6 @@ def main():
                 break
 
             if oom:
-                start = time.time()
                 trial_batch -= 1
                 if use_gpu:
                     torch.cuda.empty_cache()
@@ -142,29 +159,7 @@ def main():
                     print("No batch size found to run current training session (style image too large)")
                     sys.exit(1)
     else:
-        if args.movie is None:
-            args.content_image_raw = None
-            stylize(args, use_gpu)
-        else:
-            frame_id = 0;
-            main_model = args.model
-            # assign directory
-            directory = os.path.join('movies', main_model)
-             
-            # iterate over files in
-            # that directory
-            for filename in os.listdir(os.path.join(args.model_dir, directory)):
-                f = os.path.join(args.model_dir, directory, filename)
-                # checking if it is a file
-                if os.path.isfile(f):
-                    # print(f)
-                    frame_id += 1;
-                    args.model = os.path.join(directory, filename)
-                    args.output_image = os.path.join('movies', main_model, str(frame_id).zfill(4)) + '.jpg'
-                    args.add_model_ext = 0;
-                    print(args.model, " -> ", args.output_image)
-            # print("looping : ", x)
-                    stylize(args, use_gpu)
+        stylize(args, use_gpu)
         
     elapsed = time.time() - start    
     print("Elapsed time = %f secs" % (elapsed))
@@ -177,7 +172,8 @@ def main():
 
 if __name__ == "__main__":
     main()
-'''
-python pysrc/fns.py train --epochs 2 --batch-size 8 --dataset /train/unsplash/256 --style-image style-images/random_sketch_1.jpg --model-name test-dae-sketch1-256 --image-size 256 --logfile logs/test.log --style-weight 1e10 --net vgg16 --save-model-dir models
-          
-'''
+
+# python pysrc/fns.py eval --content-image input-images/haywain.jpg --model-dir models --model test-dae-gothic-256 --output-image output-images/fns-test.png
+# python pysrc/fns.py train --epochs 1 --batch-size 1 --dataset /train/unsplash/256 --style-image style-images/flowers.jpg --model-dir models --model-name flowers-256 --style-weight 1e10 --net vgg16 --logfile logs/flowers-256.csv
+
+
