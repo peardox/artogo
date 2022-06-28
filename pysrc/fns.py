@@ -128,7 +128,7 @@ def main():
     if not args.ignore_gpu:
         use_gpu = check_gpu()
 
-    if args.subcommand == "train" and args.logfile is not None:
+    if args.subcommand == "train" and (args.logfile != ""):
         logging.basicConfig(filename=args.logfile, encoding='utf-8', format='%(message)s', level=logging.INFO, filemode='w')
         print("Logging to ", args.logfile)
 
@@ -173,7 +173,9 @@ def main():
 if __name__ == "__main__":
     main()
 
-# python pysrc/fns.py eval --content-image input-images/haywain.jpg --model-dir models --model test-dae-gothic-256 --output-image output-images/fns-test.png
 # python pysrc/fns.py train --epochs 1 --batch-size 1 --dataset /train/unsplash/256 --style-image style-images/flowers.jpg --model-dir models --model-name flowers-256 --style-weight 1e10 --net vgg16 --logfile logs/flowers-256.csv
+# python pysrc/fns.py eval --content-image input-images/haywain.jpg --model-dir models --model flowers-256 --output-image output-images/fns-test-flowers.png
+
+# python pysrc/fns.py train --epochs 4 --batch-size 1 --dataset /train/unsplash/256 --style-image style-images/flowers.jpg --model-dir models --model-name flowers-256-4 --style-weight 1e10 --net vgg16
 
 

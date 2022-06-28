@@ -215,9 +215,9 @@ def train(args, use_gpu, trial_batch_size):
                     
                 abort_flag = check_abort()
 
-    except:
+    except Exception as e:
+        print(e)
         print("Stopping run - please wait")
-        # print(e)
         abort_flag = False
         except_flag = True
     finally:
@@ -252,8 +252,9 @@ def train(args, use_gpu, trial_batch_size):
                     + ", " + str(train_eta) \
                     + ", " + str(train_left)
 
-                logging.info(mesg)
-                print("==> " + mesg)
+                if (args.logfile != ""):
+                    logging.info(mesg)
+                print(mesg)
 
             print("\nDone, trained model saved at", save_model_path)
             print("Batch size =", trial_batch_size, "- Epochs =", epochs)
