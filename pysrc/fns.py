@@ -185,4 +185,6 @@ if __name__ == "__main__":
 # python pysrc/fns.py train --epochs 2 --batch-size 2 --dataset /train/unsplash/256 --style-image style-images/operagx.jpg --model-dir models --model-name operagx-256-2 --style-weight 1e10 --net vgg16 --logfile logs/operagx-256-2.csv
 # python pysrc/fns.py eval --content-image input-images/haywain-wall.jpg --model-dir models --model operagx-256-2 --output-image output-images/logocomp.png
 
-# python pysrc/fns.py train --epochs 16 --batch-size 36 --dataset /train/unsplash/256 --style-image dae/stray.jpg --model-dir models --model-name dae_watercolor-256-16 --style-weight 1e10 --net vgg16 --logfile logs/stray-256-16.csv checkpoint-model-dir checkpoints --checkpoint-interval 2
+# python pysrc/fns.py train --epochs 4 --batch-size 20 --dataset /train/unsplash/256 --style-image style-images/stray.jpg --model-dir models --model-name stray-256-4 --style-weight 1e10 --net vgg19 --logfile logs/stray-256-4.csv --log-event-api True
+
+# python pysrc/fns.py train --epochs 16 --batch-size 20 --dataset /train/unsplash/256 --style-image style-images/stray.jpg --model-dir models --model-name stray-256-16 --style-weight 1e10 --net vgg19 --logfile logs/stray-256-16.csv --checkpoint-model-dir checkpoints --checkpoint-interval 2 --log-event-api True

@@ -17,10 +17,13 @@ from vgg import *
 import logging
 from cmdfuncts import *
 
-have_psutils = False
-if "psutil" in sys.modules:
-    have_psutils = True
+have_psutils = True
+try:
     import psutil
+except Exception as e:
+    print(e)
+    print('Exception type is:', e.__class__.__name__)
+    have_psutils = False
 
 def get_gpu_memory(have_psutils):
     d = torch.cuda.get_device_name(0)
@@ -70,7 +73,6 @@ def train(args, use_gpu, trial_batch_size):
     agg_style_loss = 0.
     count = 0
     image_count = 0
-    ckpt_id = 0
     batch_id = 0
     reporting_interval = 1
     train_start = time.time()
@@ -152,7 +154,6 @@ def train(args, use_gpu, trial_batch_size):
             agg_content_loss = 0.
             agg_style_loss = 0.
             count = 0
-            ckpt_id = 0
             
             for batch_id, (x, _) in enumerate(train_loader):
                 n_batch = len(x)
@@ -242,13 +243,13 @@ def train(args, use_gpu, trial_batch_size):
                         logging.info(mesg)
                     # print(mesg)
                     
-                if (args.checkpoint_model_dir != "") and (batch_id + 1) % args.checkpoint_interval == 0:
+                if (args.checkpoint_model_dir != "") and ((e % args.checkpoint_interval) == 0) and (batch_id == 0) and (e > 0):
                     transformer.eval().cpu()
-                    ckpt_id += 1;
-                    ckpt_model_filename = args.model_name + "-ckpt-" + str(batch_id) + args.model_ext
+                    ckpt_model_filename = args.model_name + "-ckpt-" + str(e) + args.model_ext
                     ckpt_model_path = os.path.join(args.checkpoint_model_dir, ckpt_model_filename)
                     torch.save(transformer.state_dict(), ckpt_model_path)
                     transformer.to(device).train()
+                    print("Saved", ckpt_model_path)
                     
                 if (args.limit != 0 and count >= ilimit) or abort_flag:
                     if abort_flag:
