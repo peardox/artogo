@@ -10,20 +10,47 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision import transforms
 import torch.onnx
-
+import json
 import utils
 from transformer_net import TransformerNet
 from vgg import *
 import logging
 from cmdfuncts import *
 
-def show_gpu_memory(label):
+have_psutils = False
+if "psutil" in sys.modules:
+    have_psutils = True
+    import psutil
+
+def get_gpu_memory(have_psutils):
+    d = torch.cuda.get_device_name(0)
     t = torch.cuda.get_device_properties(0).total_memory
     r = torch.cuda.memory_reserved(0)
     a = torch.cuda.memory_allocated(0)
     f = r-a  # free inside reserved
-    print(label, " => Free : ", f, "Reserved : ", r, "Allocated : ", a, "Total : ", t)
+    
+    gpu = TJsonLog(
+        device = d,
+        free = f,
+        reserved = r,
+        allocated = a,
+        total = t)
 
+    if have_psutils:
+        m = psutil.virtual_memory()
+        mem = TJsonLog(
+            total = m.total,
+            available = m.available,
+            percent = m.percent,
+            used = m.used,
+            free = m.free)
+
+        stats = TJsonLog(gpu = gpu, mem = mem)
+    else:
+        stats = TJsonLog(gpu = gpu)
+        
+    return(stats)
+    
 def check_paths(args):
     try:
         if not os.path.exists(args.model_dir):
@@ -180,6 +207,21 @@ def train(args, use_gpu, trial_batch_size):
                         else:
                             train_delta = 1 - (train_left / last_train)
 
+                    logline = TJsonLog(
+                        image_count = image_count,
+                        train_elapsed = train_elapsed,
+                        train_interval = train_interval,
+                        content_loss = round(agg_content_loss / (batch_id + 1)),
+                        style_loss = round(agg_style_loss / (batch_id + 1)),
+                        total_loss = round((agg_content_loss + agg_style_loss) / (batch_id + 1)),
+                        reporting_line = reporting_line,
+                        train_completion = train_completion,
+                        total_images = total_images,
+                        train_eta = train_eta,
+                        train_left = train_left,
+                        train_delta = train_delta,
+                        system = get_gpu_memory(have_psutils))
+                        
                     mesg = str(image_count) + ", " \
                         + str(train_elapsed) + ", " \
                         + str(train_interval) + ", " \
@@ -195,9 +237,9 @@ def train(args, use_gpu, trial_batch_size):
 
                     if (args.logfile != ""):
                         logging.info(mesg)
-                    print(mesg)
-
-                
+                    # print(mesg)
+                    print(json.dumps(logline))
+                    
                 if (args.checkpoint_model_dir != "") and (batch_id + 1) % args.checkpoint_interval == 0:
                     transformer.eval().cpu()
                     ckpt_model_filename = "ckpt_" + str(ckpt_id + 1).zfill(4) + ".pth"
@@ -217,9 +259,11 @@ def train(args, use_gpu, trial_batch_size):
 
     except Exception as e:
         print(e)
-        print("Stopping run - please wait")
+        # print('type is:', e.__class__.__name__)
+        # print("Stopping run - please wait")
         abort_flag = False
         except_flag = True
+        raise e
     finally:
         if not except_flag:
             # save model
@@ -239,7 +283,21 @@ def train(args, use_gpu, trial_batch_size):
                 if train_completion > 0:
                     train_eta = train_elapsed / train_completion
                     train_left = train_eta - train_elapsed
-                
+
+                logline = TJsonLog(
+                    image_count = image_count,
+                    train_elapsed = train_elapsed,
+                    train_interval = train_interval,
+                    content_loss = round(agg_content_loss / (batch_id + 1)),
+                    style_loss = round(agg_style_loss / (batch_id + 1)),
+                    total_loss = round((agg_content_loss + agg_style_loss) / (batch_id + 1)),
+                    reporting_line = reporting_line,
+                    train_completion = train_completion,
+                    total_images = total_images,
+                    train_eta = train_eta,
+                    train_left = train_left,
+                    train_delta = 0)
+
                 mesg = str(image_count) + ", " \
                     + str(train_elapsed) + ", " \
                     + str(train_interval) + ", " \
@@ -254,7 +312,8 @@ def train(args, use_gpu, trial_batch_size):
 
                 if (args.logfile != ""):
                     logging.info(mesg)
-                print(mesg)
+                # print(mesg)
+                print(json.dumps(logline))
 
             print("\nDone, trained model saved at", save_model_path)
             print("Batch size =", trial_batch_size, "- Epochs =", epochs)
@@ -301,7 +360,8 @@ def stylize(args, use_gpu):
             else:
                 output = style_model(content_image).cpu()
     utils.save_image(args.output_image, output[0])
-
+    return (args.output_image)
+    
 def stylize_onnx(content_image, args):
     """
     Read ONNX model and run it using onnxruntime
@@ -326,3 +386,7 @@ def stylize_onnx(content_image, args):
 
     return torch.from_numpy(img_out_y)
 
+class TJsonLog(dict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__dict__ = self

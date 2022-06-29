@@ -176,6 +176,9 @@ if __name__ == "__main__":
 # python pysrc/fns.py train --epochs 1 --batch-size 1 --dataset /train/unsplash/256 --style-image style-images/flowers.jpg --model-dir models --model-name flowers-256 --style-weight 1e10 --net vgg16 --logfile logs/flowers-256.csv
 # python pysrc/fns.py eval --content-image input-images/haywain.jpg --model-dir models --model flowers-256 --output-image output-images/fns-test-flowers.png
 
-# python pysrc/fns.py train --epochs 4 --batch-size 1 --dataset /train/unsplash/256 --style-image style-images/flowers.jpg --model-dir models --model-name flowers-256-4 --style-weight 1e10 --net vgg16
+# python pysrc/fns.py train --epochs 4 --batch-size 10 --dataset /train/unsplash/256 --style-image style-images/flowers.jpg --model-dir models --model-name flowers-256-4 --style-weight 1e10 --net vgg16 --logfile logs/flowers-256-4
+# python pysrc/fns.py eval --content-image input-images/haywain.jpg --model-dir models --model flowers-256-4 --output-image output-images/fns-test-flowers-4.png
 
 
+# python pysrc/fns.py train --epochs 2 --batch-size 2 --dataset /train/unsplash/256 --style-image style-images/operagx.jpg --model-dir models --model-name operagx-256-2 --style-weight 1e10 --net vgg16 --logfile logs/operagx-256-2.csv
+# python pysrc/fns.py eval --content-image input-images/haywain-wall.jpg --model-dir models --model operagx-256-2 --output-image output-images/logocomp.png
