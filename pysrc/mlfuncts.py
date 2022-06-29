@@ -259,7 +259,7 @@ def train(args, use_gpu, trial_batch_size):
 
     except Exception as e:
         print(e)
-        # print('type is:', e.__class__.__name__)
+        print('Exception type is:', e.__class__.__name__)
         # print("Stopping run - please wait")
         abort_flag = False
         except_flag = True
