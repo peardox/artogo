@@ -206,21 +206,24 @@ def train(args, use_gpu, trial_batch_size):
                             train_delta = 0
                         else:
                             train_delta = 1 - (train_left / last_train)
-
-                    logline = TJsonLog(
-                        image_count = image_count,
-                        train_elapsed = train_elapsed,
-                        train_interval = train_interval,
-                        content_loss = round(agg_content_loss / (batch_id + 1)),
-                        style_loss = round(agg_style_loss / (batch_id + 1)),
-                        total_loss = round((agg_content_loss + agg_style_loss) / (batch_id + 1)),
-                        reporting_line = reporting_line,
-                        train_completion = train_completion,
-                        total_images = total_images,
-                        train_eta = train_eta,
-                        train_left = train_left,
-                        train_delta = train_delta,
-                        system = get_gpu_memory(have_psutils))
+                            
+                    if(args.log_event_api):
+                        logline = TJsonLog(
+                            image_count = image_count,
+                            train_elapsed = train_elapsed,
+                            train_interval = train_interval,
+                            content_loss = round(agg_content_loss / (batch_id + 1)),
+                            style_loss = round(agg_style_loss / (batch_id + 1)),
+                            total_loss = round((agg_content_loss + agg_style_loss) / (batch_id + 1)),
+                            reporting_line = reporting_line,
+                            train_completion = train_completion,
+                            total_images = total_images,
+                            train_eta = train_eta,
+                            train_left = train_left,
+                            train_delta = train_delta,
+                            system = get_gpu_memory(have_psutils))
+                            
+                        print(json.dumps(logline))
                         
                     mesg = str(image_count) + ", " \
                         + str(train_elapsed) + ", " \
@@ -238,12 +241,11 @@ def train(args, use_gpu, trial_batch_size):
                     if (args.logfile != ""):
                         logging.info(mesg)
                     # print(mesg)
-                    print(json.dumps(logline))
                     
                 if (args.checkpoint_model_dir != "") and (batch_id + 1) % args.checkpoint_interval == 0:
                     transformer.eval().cpu()
-                    ckpt_model_filename = "ckpt_" + str(ckpt_id + 1).zfill(4) + ".pth"
                     ckpt_id += 1;
+                    ckpt_model_filename = args.model_name + "-ckpt-" + str(batch_id) + args.model_ext
                     ckpt_model_path = os.path.join(args.checkpoint_model_dir, ckpt_model_filename)
                     torch.save(transformer.state_dict(), ckpt_model_path)
                     transformer.to(device).train()
@@ -268,7 +270,6 @@ def train(args, use_gpu, trial_batch_size):
         if not except_flag:
             # save model
             transformer.eval().cpu()
-            # save_model_filename = "epoch_" + str(epochs) + "_" + str(time.ctime()).replace(' ', '_') + "_" + str(args.content_weight) + "_" + str(args.style_weight) + ".model"
             save_model_filename = args.model_name + args.model_ext
             save_model_path = os.path.join(args.model_dir, save_model_filename)
             torch.save(transformer.state_dict(), save_model_path)

@@ -92,6 +92,8 @@ def main():
                                   help="number of batches after which a checkpoint of the trained model will be created")
     train_arg_parser.add_argument("--cuda", type=str2bool, default=True,
                                  help="Use CUDA if available")
+    train_arg_parser.add_argument("--log-event-api", type=str2bool, default=False,
+                                  help="Only used by Delphi")
 
     eval_arg_parser = subparsers.add_parser("eval", help="parser for evaluation/stylizing arguments")
     eval_arg_parser.add_argument("--content-image", type=str, required=True,
@@ -108,6 +110,8 @@ def main():
                                  help="Path to saved models")
     eval_arg_parser.add_argument("--model-ext", type=str, default=".pth",
                                   help="model extension (include dot)")
+    eval_arg_parser.add_argument("--log-event-api", type=str2bool, default=False,
+                                  help="Only used by Delphi")
     eval_arg_parser.add_argument("--ignore-gpu", type=str2bool, default=False,
                                   help="Set it to 1 to ignore GPU if detected")
     eval_arg_parser.add_argument("--export_onnx", type=str2bool, default=False,
@@ -180,3 +184,5 @@ if __name__ == "__main__":
 
 # python pysrc/fns.py train --epochs 2 --batch-size 2 --dataset /train/unsplash/256 --style-image style-images/operagx.jpg --model-dir models --model-name operagx-256-2 --style-weight 1e10 --net vgg16 --logfile logs/operagx-256-2.csv
 # python pysrc/fns.py eval --content-image input-images/haywain-wall.jpg --model-dir models --model operagx-256-2 --output-image output-images/logocomp.png
+
+# python pysrc/fns.py train --epochs 16 --batch-size 36 --dataset /train/unsplash/256 --style-image dae/stray.jpg --model-dir models --model-name dae_watercolor-256-16 --style-weight 1e10 --net vgg16 --logfile logs/stray-256-16.csv checkpoint-model-dir checkpoints --checkpoint-interval 2
