@@ -22,6 +22,7 @@ checkpoint/
 movies/
 var/
 wheels/
+dae_models/
 pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
