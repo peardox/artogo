@@ -12,7 +12,7 @@ def check_gpu():
     try:
         torch.cuda.init()
         if(torch.cuda.is_available()):
-            gpu_supported = 1
+            gpu_supported = True
             print("CUDA Available : ",torch.cuda.is_available())
             print("CUDA Devices : ",torch.cuda.device_count())
             print("CUDA Arch List : ",torch.cuda.get_arch_list())
@@ -25,7 +25,7 @@ def check_gpu():
                 # print(torch.cuda.memory_summary(x))
     except:
         print("No supported GPUs detected")
-        gpu_supported = 0
+        gpu_supported = False
 
     print("GPU Support : ", gpu_supported);
     return gpu_supported
@@ -128,7 +128,7 @@ def main():
         print("ERROR: specify either train or eval")
         sys.exit(1)
         
-    use_gpu = 0
+    use_gpu = False
     if not args.ignore_gpu:
         use_gpu = check_gpu()
 

@@ -25,19 +25,20 @@ except Exception as e:
     print('Exception type is:', e.__class__.__name__)
     have_psutils = False
 
-def get_gpu_memory(have_psutils):
-    d = torch.cuda.get_device_name(0)
-    t = torch.cuda.get_device_properties(0).total_memory
-    r = torch.cuda.memory_reserved(0)
-    a = torch.cuda.memory_allocated(0)
-    f = r-a  # free inside reserved
+def get_gpu_memory(have_psutils, use_gpu):
+    if use_gpu:
+        d = torch.cuda.get_device_name(0)
+        t = torch.cuda.get_device_properties(0).total_memory
+        r = torch.cuda.memory_reserved(0)
+        a = torch.cuda.memory_allocated(0)
+        f = r-a  # free inside reserved
     
-    gpu = TJsonLog(
-        device = d,
-        free = f,
-        reserved = r,
-        allocated = a,
-        total = t)
+        gpu = TJsonLog(
+            device = d,
+            free = f,
+            reserved = r,
+            allocated = a,
+            total = t)
 
     if have_psutils:
         m = psutil.virtual_memory()
@@ -48,9 +49,14 @@ def get_gpu_memory(have_psutils):
             used = m.used,
             free = m.free)
 
+    if have_psutils and use_gpu:
         stats = TJsonLog(gpu = gpu, mem = mem)
+    elif have_psutils and not use_gpu:
+        stats = TJsonLog(gpu = False, mem = mem)
+    elif not have_psutils and use_gpu:
+        stats = TJsonLog(gpu = gpu, mem = False)
     else:
-        stats = TJsonLog(gpu = gpu)
+        stats = TJsonLog(gpu = False, mem = False)
         
     return(stats)
     
@@ -222,7 +228,7 @@ def train(args, use_gpu, trial_batch_size):
                             train_eta = train_eta,
                             train_left = train_left,
                             train_delta = train_delta,
-                            system = get_gpu_memory(have_psutils))
+                            system = get_gpu_memory(have_psutils, use_gpu))
                             
                         print(json.dumps(logline))
                         
