@@ -21,15 +21,19 @@ Again a suggestion - I name weights in filenames to make them easy to sort so 1.
 
 ##### Training Data (optional)
 
-Training data may be obtained however you like but I have prepared a specially packaged variant of Coco2017 that you can download from https://peardox.com/downloads/train.tar.gz (4.7Gb - jpegs don't compress so extracted it becomes the same size roughly)
+Training data may be obtained however you like but I have prepared a specially packaged variants of Coco 2017 and UnSplash Lite that you can download from the following URLs
+https://peardox.com/data/train-coco-2017-256.zip (1.5 GB - 117,838 images at 512x512)
+https://peardox.com/data/train-coco-2017-512.zip (2.2 GB - 49,951 images at 512x512)
+https://peardox.com/data/train-unsplash-lite-256.zip (291 MB - 24,989 images at 256x256)
+https://peardox.com/data/train-unsplash-lite-512.zip (960 MB - 24,989 images at 512x512)
 
-The file layout of this download is as follows
+The file layout of this download is as follows (train-coco-1027-512 for example)
 
-train
+datasets
 
-\+ coco100
+\+ train
 
-\+ coco2017
+   + coco2017
 
      + 512
      
@@ -39,7 +43,7 @@ train
                   
                        + 01 .. 18
 
-The coco2017/512 directory therefore contains up to 19 directories three levels deep with files named according to their directory and sequence in that folder - e.g. coco2017/512/01/02/03/01-02-03-01.jpg to 01-02-03-18.jpg. While this may look stupid it's far from it. All the files are pre-processed to be 512x512 in size (saves a resize in code) and the layout ensures files can be accessed quickly. The original release has files of wildly varying image dimensions and places all of them in one directory (118,287 files in one directory is a bad idea...)
+The coco/2017/512 directory therefore contains up to 18 directories three levels deep with files named according to their directory and sequence in that folder - e.g. coco2017/512/01/02/03/01-02-03-01.jpg to 01-02-03-18.jpg. While this may look stupid it's far from it. All the files are pre-processed to be 512x512 in size (saves a resize in code) and the layout ensures files can be accessed quickly. The original release has files of wildly varying image dimensions and places all of them in one directory (118,287 files in one directory is a bad idea...)
 
 If used the archive should be expanded in the same directory as the root of this repo as it will extract into the train directory (or you could end up with train/train)
 
