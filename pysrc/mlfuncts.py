@@ -1,3 +1,4 @@
+from delphifuncts import *
 import argparse
 import os
 import sys
@@ -15,7 +16,6 @@ import utils
 from transformer_net import TransformerNet
 from vgg import *
 import logging
-from cmdfuncts import *
 
 have_psutils = True
 try:
@@ -32,7 +32,7 @@ def get_gpu_memory(have_psutils, use_gpu):
         r = torch.cuda.memory_reserved(0)
         a = torch.cuda.memory_allocated(0)
         f = r-a  # free inside reserved
-    
+
         gpu = TJsonLog(
             device = d,
             free = f,
@@ -57,9 +57,9 @@ def get_gpu_memory(have_psutils, use_gpu):
         stats = TJsonLog(gpu = gpu, mem = False)
     else:
         stats = TJsonLog(gpu = False, mem = False)
-        
+
     return(stats)
-    
+
 def check_paths(args):
     try:
         if not os.path.exists(args.model_dir):
@@ -69,11 +69,15 @@ def check_paths(args):
     except OSError as e:
         print(e)
         sys.exit(1)
-        
+
 
 def train(args, use_gpu, trial_batch_size):
+    if have_delphi_io:
+        ioopts = TDelphiInputOutput();
+
     abort_flag = False
     except_flag = False
+    train_sample_flag = False
     e = 0
     agg_content_loss = 0
     agg_style_loss = 0.
@@ -87,23 +91,17 @@ def train(args, use_gpu, trial_batch_size):
     total_images = 1 # for div by zero prevention
     epochs = args.epochs;
     last_reported_image_count = 0
-    first_pass = True
     ilimit = 0
     train_elapsed = 0
     train_interval = 0
     last_delta = 1
     train_left = 1
     last_train = 0
-    
+
     try:
         device = torch.device("cuda" if use_gpu else "cpu")
         # torch.set_num_threads(os.cpu_count())
 
-        if args.limit > 0:
-            ilimit = args.limit
-            print("Set limit to " + str(ilimit))
-            total_images = epochs * ilimit
-            
         logging.info("image_count, train_elapsed, train_interval, content_loss, style_loss, total_loss, reporting_line, train_completion, total_images, train_eta, train_left, delta_time")
 
         np.random.seed(args.seed)
@@ -124,12 +122,16 @@ def train(args, use_gpu, trial_batch_size):
         train_dataset = datasets.ImageFolder(args.dataset, transform)
         train_loader = DataLoader(train_dataset, batch_size=trial_batch_size)
 
-        if ilimit == 0:
+        if args.limit > 0:
+            ilimit = args.limit
+            total_images = ilimit
+            epochs = (total_images // len(train_dataset)) + 1
+        else:
             total_images = epochs * len(train_dataset)
-            
+
         # GPU is unused at this point
 
-        transformer = TransformerNet().to(device)
+        transformer = TransformerNet(showTime = False).to(device)
 
         optimizer = Adam(transformer.parameters(), args.lr)
         mse_loss = torch.nn.MSELoss()
@@ -146,28 +148,42 @@ def train(args, use_gpu, trial_batch_size):
         style = utils.load_image(args.style_image, args.style_scale)
         style = style_transform(style)
         style = style.repeat(trial_batch_size, 1, 1, 1).to(device)
-        
+
         features_style = vgg(utils.normalize_batch(style))
         gram_style = [utils.gram_matrix(y) for y in features_style]
 
 
-        if first_pass:
-            train_start = time.time()
-            first_pass = False
+        train_start = time.time()
+
+        print("Set ilimit = " + str(ilimit) + ", epochs = " + str(epochs) + ", total_images = " + str(total_images))
 
         for e in range(epochs):
+            if ((ilimit != 0) and (image_count >= ilimit)) or abort_flag:
+                if abort_flag:
+                    print("Epoch aborting run !!!")
+                else:
+                    print("Epoch limit reached : " + str(ilimit));
+                break;
+
             transformer.train()
             agg_content_loss = 0.
             agg_style_loss = 0.
             count = 0
-            
+
             for batch_id, (x, _) in enumerate(train_loader):
+                if ((ilimit != 0) and (image_count >= ilimit)) or abort_flag:
+                    if abort_flag:
+                        print("Batch aborting run !!!")
+                    else:
+                        print("Batch limit reached : " + str(ilimit));
+                    break
+
                 n_batch = len(x)
                 count += n_batch
                 optimizer.zero_grad()
 
                 image_count += n_batch
-                
+
                 x = x.to(device)
                 y = transformer(x)
 
@@ -204,67 +220,93 @@ def train(args, use_gpu, trial_batch_size):
                         last_train = train_elapsed
                     else:
                         last_train = train_left
+
                     train_delta = 1
-                    
+
                     if train_completion > 0:
                         train_eta = train_elapsed / train_completion
                         train_left = train_eta - train_elapsed
                         if last_train == 0:
-                            train_delta = 0
+                            train_delta = 1
                         else:
                             train_delta = 1 - (train_left / last_train)
-                            
+
                     if(args.log_event_api):
-                        logline = TJsonLog(
-                            image_count = image_count,
-                            train_elapsed = train_elapsed,
-                            train_interval = train_interval,
-                            content_loss = round(agg_content_loss / (batch_id + 1)),
-                            style_loss = round(agg_style_loss / (batch_id + 1)),
-                            total_loss = round((agg_content_loss + agg_style_loss) / (batch_id + 1)),
-                            reporting_line = reporting_line,
-                            train_completion = train_completion,
-                            total_images = total_images,
-                            train_eta = train_eta,
-                            train_left = train_left,
-                            train_delta = train_delta,
-                            system = get_gpu_memory(have_psutils, use_gpu))
-                            
-                        print(json.dumps(logline))
-                        
-                    mesg = str(image_count) + ", " \
-                        + str(train_elapsed) + ", " \
-                        + str(train_interval) + ", " \
-                        + str(round(agg_content_loss / (batch_id + 1))) + ", " \
-                        + str(round(agg_style_loss / (batch_id + 1))) + ", " \
-                        + str(round((agg_content_loss + agg_style_loss) / (batch_id + 1))) \
-                        + ", " + str(reporting_line) \
-                        + ", " + str(train_completion) \
-                        + ", " + str(total_images) \
-                        + ", " + str(train_eta) \
-                        + ", " + str(train_left) \
-                        + ", " + str(train_delta)
+                        # system = get_gpu_memory(have_psutils, use_gpu)
+
+                        if have_delphi_io:
+                            ioopts.JsonLog = json.dumps(TJsonLog(
+                                image_count = image_count,
+                                train_elapsed = round(train_elapsed),
+                                train_interval = train_interval,
+                                content_loss = round(agg_content_loss / (batch_id + 1)),                    # Loss chart
+                                style_loss = round(agg_style_loss / (batch_id + 1)),                        # Loss chart
+                                total_loss = round((agg_content_loss + agg_style_loss) / (batch_id + 1)),   # Loss chart
+                                reporting_line = reporting_line,        # Enable Buttons when = 1
+                                train_completion = train_completion,    # Progress bar
+                                total_images = total_images,
+                                train_eta = round(train_eta),           # ETA Progress
+                                train_left = round(train_left),         # ETA Progress
+                                train_delta = train_delta               # Enable Countdown
+                                ))
+                            pinout.DelphiIO();
+                            abort_flag = ioopts.TrainAbortFlag;
+                            train_sample_flag = ioopts.TrainSampleFlag;
+                            ioopts.TrainSampleFlag = False;
+                        else:
+                            print(json.dumps(TJsonLog(
+                                image_count = image_count,
+                                train_elapsed = round(train_elapsed),
+                                train_interval = train_interval,
+                                content_loss = round(agg_content_loss / (batch_id + 1)),
+                                style_loss = round(agg_style_loss / (batch_id + 1)),
+                                total_loss = round((agg_content_loss + agg_style_loss) / (batch_id + 1)),
+                                reporting_line = reporting_line,
+                                train_completion = train_completion,
+                                total_images = total_images,
+                                train_eta = round(train_eta),
+                                train_left = round(train_left),
+                                train_delta = train_delta
+                                )))
 
                     if (args.logfile != ""):
+                        mesg = str(image_count) + ", " \
+                            + str(train_elapsed) + ", " \
+                            + str(train_interval) + ", " \
+                            + str(round(agg_content_loss / (batch_id + 1))) + ", " \
+                            + str(round(agg_style_loss / (batch_id + 1))) + ", " \
+                            + str(round((agg_content_loss + agg_style_loss) / (batch_id + 1))) \
+                            + ", " + str(reporting_line) \
+                            + ", " + str(train_completion) \
+                            + ", " + str(total_images) \
+                            + ", " + str(train_eta) \
+                            + ", " + str(train_left) \
+                            + ", " + str(train_delta)
                         logging.info(mesg)
-                    # print(mesg)
-                    
-                if (args.checkpoint_model_dir != "") and ((e % args.checkpoint_interval) == 0) and (batch_id == 0) and (e > 0):
+
+                if train_sample_flag:
+                    train_sample_flag = False
                     transformer.eval().cpu()
-                    ckpt_model_filename = args.model_name + "-ckpt-" + str(e) + args.model_ext
+                    ckpt_model_filename = args.model_name + "-ckpt-" + str(e)
                     ckpt_model_path = os.path.join(args.checkpoint_model_dir, ckpt_model_filename)
-                    torch.save(transformer.state_dict(), ckpt_model_path)
+                    torch.save(transformer.state_dict(), ckpt_model_path + args.model_ext)
+                    print("Saved", ckpt_model_path + args.model_ext)
+                    sample = stylize(TStylize( content_image = "input-images/haywain.jpg",
+                        content_image_raw = "",
+                        output_image = args.checkpoint_model_dir + "/" + ckpt_model_filename + ".jpg",
+                        model = ckpt_model_filename,
+                        model_dir = args.checkpoint_model_dir,
+                        model_ext = ".pth",
+                        logfile = "",
+                        content_scale = 1,
+                        ignore_gpu = False,
+                        export_onnx = False,
+                        add_model_ext = True,
+                        log_event_api = False), False)
+                    print("Sample =", sample);
+                    ioopts.SampleFilename = sample;
+                    pinout.SampleToDelphi()
                     transformer.to(device).train()
-                    print("Saved", ckpt_model_path)
-                    
-                if (args.limit != 0 and count >= ilimit) or abort_flag:
-                    if abort_flag:
-                        print("Aborting run")
-                    else:
-                        pass # print("Limit reached : " + str(ilimit));
-                    break;
-                    
-                abort_flag = check_abort()
 
     except Exception as e:
         print(e)
@@ -288,13 +330,28 @@ def train(args, use_gpu, trial_batch_size):
                 last_reported_image_count = image_count
                 train_eta = 0
                 train_left = 0
+                train_delta = 0
                 if train_completion > 0:
                     train_eta = train_elapsed / train_completion
                     train_left = train_eta - train_elapsed
 
-                logline = TJsonLog(
+                if (args.logfile != ""):
+                    mesg = str(image_count) + ", " \
+                        + str(train_elapsed) + ", " \
+                        + str(train_interval) + ", " \
+                        + str(round(agg_content_loss / (batch_id + 1))) + ", " \
+                        + str(round(agg_style_loss / (batch_id + 1))) + ", " \
+                        + str(round((agg_content_loss + agg_style_loss) / (batch_id + 1))) \
+                        + ", " + str(reporting_line) \
+                        + ", " + str(train_completion) \
+                        + ", " + str(total_images) \
+                        + ", " + str(train_eta) \
+                        + ", " + str(train_left)
+                    logging.info(mesg)
+
+                print(json.dumps(TJsonLog(
                     image_count = image_count,
-                    train_elapsed = train_elapsed,
+                    train_elapsed = round(train_elapsed),
                     train_interval = train_interval,
                     content_loss = round(agg_content_loss / (batch_id + 1)),
                     style_loss = round(agg_style_loss / (batch_id + 1)),
@@ -302,36 +359,35 @@ def train(args, use_gpu, trial_batch_size):
                     reporting_line = reporting_line,
                     train_completion = train_completion,
                     total_images = total_images,
-                    train_eta = train_eta,
-                    train_left = train_left,
-                    train_delta = 0)
-
-                mesg = str(image_count) + ", " \
-                    + str(train_elapsed) + ", " \
-                    + str(train_interval) + ", " \
-                    + str(round(agg_content_loss / (batch_id + 1))) + ", " \
-                    + str(round(agg_style_loss / (batch_id + 1))) + ", " \
-                    + str(round((agg_content_loss + agg_style_loss) / (batch_id + 1))) \
-                    + ", " + str(reporting_line) \
-                    + ", " + str(train_completion) \
-                    + ", " + str(total_images) \
-                    + ", " + str(train_eta) \
-                    + ", " + str(train_left)
-
-                if (args.logfile != ""):
-                    logging.info(mesg)
-                # print(mesg)
-                print(json.dumps(logline))
+                    train_eta = round(train_eta),
+                    train_left = round(train_left),
+                    train_delta = train_delta
+                    )))
 
             print("\nDone, trained model saved at", save_model_path)
             print("Batch size =", trial_batch_size, "- Epochs =", epochs)
-            
+            if have_delphi_train:
+                return(json.dumps(TJsonLog(
+                    image_count = image_count,
+                    train_elapsed = round(train_elapsed),
+                    train_interval = train_interval,
+                    content_loss = round(agg_content_loss / (batch_id + 1)),
+                    style_loss = round(agg_style_loss / (batch_id + 1)),
+                    total_loss = round((agg_content_loss + agg_style_loss) / (batch_id + 1)),
+                    reporting_line = reporting_line,
+                    train_completion = train_completion,
+                    total_images = total_images,
+                    train_eta = round(train_eta),
+                    train_left = round(train_left),
+                    train_delta = train_delta
+                    )))
+
         #    torch.onnx.export(model, dummy_input, "alexnet.onnx", verbose=True, input_names=input_names, output_names=output_names)
 
 def stylize(args, use_gpu):
     device = torch.device("cuda" if use_gpu else "cpu")
-    
-    if args.content_image_raw == '':
+
+    if args.content_image_raw == "":
         content_image = utils.load_image(args.content_image, args.content_scale)
     else:
         content_image = content_image_raw
@@ -347,16 +403,14 @@ def stylize(args, use_gpu):
         output = stylize_onnx(content_image, args)
     else:
         with torch.no_grad():
-            style_model = TransformerNet()
+            style_time = time.time();
+            if have_delphi_style:
+                pstyle.StyleProgress(json.dumps(TJsonLog(event = 'styleStart', time = 0)))
+            style_model = TransformerNet(showTime = True)
             if args.add_model_ext == 1:
                 state_dict = torch.load(os.path.join(args.model_dir, args.model + args.model_ext))
             else:
                 state_dict = torch.load(os.path.join(args.model_dir, args.model))
-            # remove saved deprecated running_* keys in InstanceNorm from the checkpoint
-            if False:
-                for k in list(state_dict.keys()):
-                    if re.search(r'in\d+\.running_(mean|var)$', k):
-                        del state_dict[k]
             style_model.load_state_dict(state_dict)
             style_model.to(device)
             style_model.eval()
@@ -364,12 +418,16 @@ def stylize(args, use_gpu):
                 assert args.export_onnx.endswith(".onnx"), "Export model file should end with .onnx"
                 output = torch.onnx._export(
                     style_model, content_image, args.export_onnx, opset_version=11,
-                ).cpu()            
+                ).cpu()
+                if have_delphi_style:
+                    pstyle.StyleProgress(json.dumps(TJsonLog(event = 'styleEnd', time = time.time() - style_time)))
             else:
                 output = style_model(content_image).cpu()
+                if have_delphi_style:
+                    pstyle.StyleProgress(json.dumps(TJsonLog(event = 'styleEnd', time = time.time() - style_time)))
     utils.save_image(args.output_image, output[0])
     return (args.output_image)
-    
+
 def stylize_onnx(content_image, args):
     """
     Read ONNX model and run it using onnxruntime
@@ -390,11 +448,27 @@ def stylize_onnx(content_image, args):
 
     ort_inputs = {ort_session.get_inputs()[0].name: to_numpy(content_image)}
     ort_outs = ort_session.run(None, ort_inputs)
-    img_out_y = ort_outs[0]                                    
+    img_out_y = ort_outs[0]
 
     return torch.from_numpy(img_out_y)
 
-class TJsonLog(dict):
+class TStylize(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.__dict__ = self
+
+##### Test #####
+#opts = TStylize( content_image = "..\\input-images\\haywain.jpg",
+#    content_image_raw = "",
+#    output_image = "..\\output-images\\command-test.jpg",
+#    model = "dae_mosaic_1-200",
+#    model_dir = "..\\models",
+#    model_ext = ".pth",
+#    logfile = "",
+#    content_scale = 1,
+#    ignore_gpu = False,
+#    export_onnx = False,
+#    add_model_ext = True,
+#    log_event_api = False)
+#stylize(opts, False)
+##### Test #####

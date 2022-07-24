@@ -5,8 +5,6 @@ import time
 import logging
 import torch
 from mlfuncts import *
-from cmdfuncts import *
-
 
 def check_gpu():
     try:
@@ -72,6 +70,8 @@ def main():
                                   help="model extension (include dot)")
     train_arg_parser.add_argument("--style-scale", type=float, default=1,
                                   help="size of style-image, default is the original size of style image")
+    train_arg_parser.add_argument("--channels", type=int, default=32,
+                                  help="Channels to use in training")
     train_arg_parser.add_argument("--logfile", type=str, default="",
                                   help="Optional lof file location")
     train_arg_parser.add_argument("--ignore-gpu", type=str2bool, default=False,
@@ -86,12 +86,6 @@ def main():
                                   help="learning rate, default is 1e-3")
     train_arg_parser.add_argument("--net", type=str, default="vgg19",
                                   help="Network to use - vgg19 or vgg16")
-    train_arg_parser.add_argument("--log-interval", type=int, default=500,
-                                  help="number of images after which the training loss is logged, default is 500")
-    train_arg_parser.add_argument("--checkpoint-interval", type=int, default=1000,
-                                  help="number of batches after which a checkpoint of the trained model will be created")
-    train_arg_parser.add_argument("--cuda", type=str2bool, default=True,
-                                 help="Use CUDA if available")
     train_arg_parser.add_argument("--log-event-api", type=str2bool, default=False,
                                   help="Only used by Delphi")
 
@@ -118,8 +112,6 @@ def main():
                                  help="export ONNX model to a given file")
     eval_arg_parser.add_argument("--add-model-ext", type=str2bool, default=True,
                                  help="Add model ext or not")
-    eval_arg_parser.add_argument("--cuda", type=str2bool, default=True,
-                                 help="Use CUDA if available")
     eval_arg_parser.add_argument("--logfile", type=str, default="",
                                   help="Optional log file location")
     args = main_arg_parser.parse_args()
@@ -175,6 +167,7 @@ def main():
 if __name__ == "__main__":
     main()
 
+'''
 # python pysrc/fns.py train --epochs 1 --batch-size 1 --dataset /train/unsplash/256 --style-image style-images/flowers.jpg --model-dir models --model-name flowers-256 --style-weight 1e10 --net vgg16 --logfile logs/flowers-256.csv
 # python pysrc/fns.py eval --content-image input-images/haywain.jpg --model-dir models --model flowers-256 --output-image output-images/fns-test-flowers.png
 # python pysrc/fns.py train --epochs 4 --batch-size 10 --dataset /train/unsplash/256 --style-image style-images/flowers.jpg --model-dir models --model-name flowers-256-4 --style-weight 1e10 --net vgg16 --logfile logs/flowers-256-4
@@ -182,4 +175,15 @@ if __name__ == "__main__":
 # python pysrc/fns.py train --epochs 2 --batch-size 2 --dataset /train/unsplash/256 --style-image style-images/operagx.jpg --model-dir models --model-name operagx-256-2 --style-weight 1e10 --net vgg16 --logfile logs/operagx-256-2.csv
 # python pysrc/fns.py eval --content-image input-images/haywain-wall.jpg --model-dir models --model operagx-256-2 --output-image output-images/logocomp.png
 # python pysrc/fns.py train --epochs 4 --batch-size 20 --dataset /train/unsplash/256 --style-image style-images/stray.jpg --model-dir models --model-name stray-256-4 --style-weight 1e10 --net vgg19 --logfile logs/stray-256-4.csv --log-event-api True
-# python pysrc/fns.py train --epochs 16 --batch-size 20 --dataset /train/unsplash/256 --style-image style-images/stray.jpg --model-dir models --model-name stray-256-16 --style-weight 1e10 --net vgg19 --logfile logs/stray-256-16.csv --checkpoint-model-dir checkpoints --checkpoint-interval 2 --log-event-api True
+# python pysrc/fns.py train --epochs 16 --batch-size 20 --dataset /train/unsplash/256 --style-image style-images/stray.jpg --model-dir models --model-name stray-256-16 --style-weight 1e10 --net vgg19 --logfile logs/stray-256-16.csv --checkpoint-model-dir checkpoints --log-event-api True
+# python pysrc/fns.py eval --model-dir models --model wall --content-image input-images/haywain.jpg --output-image output-images/haywain-wall.jpg
+
+# train --epochs 1 --batch-size 1 --dataset /git/artogo/datasets/train/unsplash/lite/256 --style-image /dae/dae/256/dae_mosaic_1.jpg --model-dir models --model-name test-time --style-weight 1e10 --net vgg16 --log-event-api True
+
+# eval --model-dir models --model dae_mosaic_1-256 --content-image input-images/haywain.jpg --output-image output-images/aaa-haywain-mosaic-256.jpg
+
+train --epochs 1 --batch-size 1 --dataset datasets/train/unsplash/lite/256 --style-image style-images/dae_mosaic_1.jpg --model-dir models --model-name test-time --style-weight 1e10 --net vgg16 --log-event-api True
+
+
+'''
+
