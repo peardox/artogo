@@ -5,7 +5,7 @@ have_delphi_io = False
 try:
     import pinout
 
-    have_delphi_io = True
+    have_delphi_io = False; # True
 
     class TDelphiInputOutput:
         def __getattr__(Self, Key):

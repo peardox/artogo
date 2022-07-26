@@ -36,7 +36,7 @@ class TransformerNet(torch.nn.Module):
 
     def forward(self, X):
         if self.showTime and have_delphi_style:
-            pstyle.StyleProgress(json.dumps(TJsonLog(event = 'styling', time = time.time() - self.timeStamp)))
+            pstyle.StyleProgress(TJsonLog(event = 'styleTime', subevent = 'Controller', time = time.time() - self.timeStamp))
           
         y = self.relu(self.in1(self.conv1(X)))
         y = self.relu(self.in2(self.conv2(y)))
@@ -63,11 +63,11 @@ class ConvLayer(torch.nn.Module):
 
     def forward(self, x):
         if self.showTime and have_delphi_style:
-            pstyle.StyleProgress(json.dumps(TJsonLog(event = 'styling', time = time.time() - self.timeStamp)))
+            pstyle.StyleProgress(TJsonLog(event = 'styleTime', subevent = 'ConvLayer', time = time.time() - self.timeStamp))
         out = self.reflection_pad(x)
         out = self.conv2d(out)
         if self.showTime and have_delphi_style:
-            pstyle.StyleProgress(json.dumps(TJsonLog(event = 'styling', time = time.time() - self.timeStamp)))
+            pstyle.StyleProgress(TJsonLog(event = 'styleTime', subevent = 'ConvLayer', time = time.time() - self.timeStamp))
         return out
 
 
@@ -89,13 +89,13 @@ class ResidualBlock(torch.nn.Module):
 
     def forward(self, x):
         if self.showTime and have_delphi_style:
-            pstyle.StyleProgress((TJsonLog(event = 'styling', time = time.time() - self.timeStamp)))
+            pstyle.StyleProgress(TJsonLog(event = 'styleTime', subevent = 'ResidualBlock', time = time.time() - self.timeStamp))
         residual = x
         out = self.relu(self.in1(self.conv1(x)))
         out = self.in2(self.conv2(out))
         out = out + residual
         if self.showTime and have_delphi_style:
-            pstyle.StyleProgress(json.dumps(TJsonLog(event = 'styling', time = time.time() - self.timeStamp)))
+            pstyle.StyleProgress(TJsonLog(event = 'styleTime', subevent = 'ResidualBlock', time = time.time() - self.timeStamp))
         return out
 
 
@@ -119,13 +119,13 @@ class UpsampleConvLayer(torch.nn.Module):
         x_in = x
         if self.upsample:
             if self.showTime and have_delphi_style:
-                pstyle.StyleProgress(json.dumps(TJsonLog(event = 'styling', time = time.time() - self.timeStamp)))
+                pstyle.StyleProgress(TJsonLog(event = 'styleTime', subevent = 'UpSample', time = time.time() - self.timeStamp))
             x_in = torch.nn.functional.interpolate(x_in, mode='nearest', scale_factor=self.upsample)
         else:
             if self.showTime and have_delphi_style:
-                pstyle.StyleProgress(json.dumps(TJsonLog(event = 'styling', time = time.time() - self.timeStamp)))
+                pstyle.StyleProgress(TJsonLog(event = 'styleTime', subevent = 'UpSample', time = time.time() - self.timeStamp))
         out = self.reflection_pad(x_in)
         out = self.conv2d(out)
         if self.showTime and have_delphi_style:
-            pstyle.StyleProgress(json.dumps(TJsonLog(event = 'styling', time = time.time() - self.timeStamp)))
+            pstyle.StyleProgress(TJsonLog(event = 'styleTime', subevent = 'UpSample', time = time.time() - self.timeStamp))
         return out

@@ -137,9 +137,15 @@ def train(args, use_gpu, trial_batch_size):
         mse_loss = torch.nn.MSELoss()
 
         if args.net.casefold() == 'vgg16':
-            vgg = Vgg16(requires_grad=False).to(device)
+            if have_delphi_train:
+                vgg = Vgg16(requires_grad=False, vgg_path = args.vgg16_path).to(device)
+            else:
+                vgg = Vgg16(requires_grad=False).to(device)
         else:
-            vgg = Vgg19(requires_grad=False).to(device)
+            if have_delphi_train:
+                vgg = Vgg19(requires_grad=False, vgg_path = args.vgg19_path).to(device)
+            else:
+                vgg = Vgg19(requires_grad=False).to(device)
 
         style_transform = transforms.Compose([
             transforms.ToTensor(),
@@ -234,8 +240,8 @@ def train(args, use_gpu, trial_batch_size):
                     if(args.log_event_api):
                         # system = get_gpu_memory(have_psutils, use_gpu)
 
-                        if have_delphi_io:
-                            ioopts.JsonLog = json.dumps(TJsonLog(
+                        if have_delphi_train:
+                            ptrain.TrainProgress(TJsonLog(
                                 image_count = image_count,
                                 train_elapsed = round(train_elapsed),
                                 train_interval = train_interval,
@@ -249,11 +255,12 @@ def train(args, use_gpu, trial_batch_size):
                                 train_left = round(train_left),         # ETA Progress
                                 train_delta = train_delta               # Enable Countdown
                                 ))
-                            pinout.DelphiIO();
+                        if have_delphi_io:
                             abort_flag = ioopts.TrainAbortFlag;
                             train_sample_flag = ioopts.TrainSampleFlag;
                             ioopts.TrainSampleFlag = False;
-                        else:
+                            
+                        if not have_delphi_train:
                             print(json.dumps(TJsonLog(
                                 image_count = image_count,
                                 train_elapsed = round(train_elapsed),
@@ -304,8 +311,8 @@ def train(args, use_gpu, trial_batch_size):
                         add_model_ext = True,
                         log_event_api = False), False)
                     print("Sample =", sample);
-                    ioopts.SampleFilename = sample;
-                    pinout.SampleToDelphi()
+                    # ioopts.SampleFilename = sample;
+                    # pinout.SampleToDelphi()
                     transformer.to(device).train()
 
     except Exception as e:
@@ -405,7 +412,7 @@ def stylize(args, use_gpu):
         with torch.no_grad():
             style_time = time.time();
             if have_delphi_style:
-                pstyle.StyleProgress(json.dumps(TJsonLog(event = 'styleStart', time = 0)))
+                pstyle.StyleProgress(TJsonLog(event = 'styleTime', subevent = 'StartStyle', time = 0))
             style_model = TransformerNet(showTime = True)
             if args.add_model_ext == 1:
                 state_dict = torch.load(os.path.join(args.model_dir, args.model + args.model_ext))
@@ -420,11 +427,11 @@ def stylize(args, use_gpu):
                     style_model, content_image, args.export_onnx, opset_version=11,
                 ).cpu()
                 if have_delphi_style:
-                    pstyle.StyleProgress(json.dumps(TJsonLog(event = 'styleEnd', time = time.time() - style_time)))
+                    pstyle.StyleProgress(TJsonLog(event = 'styleTime', subevent = 'EndStyle', time = time.time() - style_time))
             else:
                 output = style_model(content_image).cpu()
                 if have_delphi_style:
-                    pstyle.StyleProgress(json.dumps(TJsonLog(event = 'styleEnd', time = time.time() - style_time)))
+                    pstyle.StyleProgress(TJsonLog(event = 'styleTime', subevent = 'EndStyle', time = time.time() - style_time))
     utils.save_image(args.output_image, output[0])
     return (args.output_image)
 
